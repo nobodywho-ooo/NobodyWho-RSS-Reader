@@ -212,6 +212,7 @@ final class TimelineViewController: NSViewController, UndoableCommandRunner, Unr
 
 	private var didRegisterForNotifications = false
 	static let fetchAndMergeArticlesQueue = CoalescingQueue(name: "Fetch and Merge Articles", interval: 0.5, maxInterval: 2.0)
+	static let removeHiddenArticlesQueue = CoalescingQueue(name: "Remove Hidden Articles", interval: 0.3, maxInterval: 1.0)
 
 	// Owned by the window’s TimelineContainerViewController.
 	// Before the view loads there is nothing to re-sort — the first fetch uses the current value.
@@ -296,6 +297,8 @@ final class TimelineViewController: NSViewController, UndoableCommandRunner, Unr
 			NotificationCenter.default.addObserver(self, selector: #selector(containerChildrenDidChange(_:)), name: .ChildrenDidChange, object: nil)
 			NotificationCenter.default.addObserver(self, selector: #selector(handleUserDefaultsDidChange(_:)), name: UserDefaults.didChangeNotification, object: nil)
 			NotificationCenter.default.addObserver(self, selector: #selector(handleTimelineThumbnailsDisplayDidChange(_:)), name: .timelineThumbnailsDisplayDidChange, object: nil)
+			NotificationCenter.default.addObserver(self, selector: #selector(handleTitleFilterSettingsDidChange(_:)), name: .titleFilterSettingsDidChange, object: nil)
+			NotificationCenter.default.addObserver(self, selector: #selector(handleTitleFilterDidHideArticles(_:)), name: .titleFilterDidHideArticles, object: nil)
 			didRegisterForNotifications = true
 		}
 
@@ -787,6 +790,28 @@ final class TimelineViewController: NSViewController, UndoableCommandRunner, Unr
 
 	@objc func handleTimelineThumbnailsDisplayDidChange(_ notification: Notification) {
 		thumbnailsDisplay = AppDefaults.timelineThumbnailsDisplay
+	}
+
+	@objc func handleTitleFilterSettingsDidChange(_ notification: Notification) {
+		guard representedObjects != nil else {
+			return
+		}
+		fetchAndReplacePreservingSelection()
+	}
+
+	@objc func handleTitleFilterDidHideArticles(_ notification: Notification) {
+		TimelineViewController.removeHiddenArticlesQueue.add(self, #selector(removeHiddenArticles))
+	}
+
+	@objc func removeHiddenArticles() {
+		let selectedArticleIDs = Set(selectedArticleIDs())
+		let remainingArticles = articles.filter { selectedArticleIDs.contains($0.articleID) || !TitleFilter.shared.isHidden($0) }
+		guard remainingArticles.count != articles.count else {
+			return
+		}
+		performBlockAndRestoreSelection {
+			articles = remainingArticles
+		}
 	}
 
 	@objc func accountDidDownloadArticles(_ note: Notification) {
@@ -1471,7 +1496,8 @@ private extension TimelineViewController {
 	}
 
 	func replaceArticles(with unsortedArticles: Set<Article>) {
-		articles = Array(unsortedArticles).sorted(by: sortParameters)
+		let sortedArticles = Array(unsortedArticles).sorted(by: sortParameters)
+		articles = TitleFilter.shared.visibleArticles(sortedArticles, keeping: Set(selectedArticleIDs()))
 	}
 
 	func fetchUnsortedArticlesSync(for representedObjects: [Any]) -> Set<Article> {

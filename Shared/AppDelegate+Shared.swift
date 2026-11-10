@@ -27,6 +27,11 @@ extension AppDelegate {
 		await vacuumAndLog(databasePath: ImageDatabase.shared.databasePath) {
 			await ImageDatabase.shared.vacuum()
 		}
+#if os(macOS)
+		await vacuumAndLog(databasePath: TitleFilter.shared.database.databasePath) {
+			await TitleFilter.shared.database.vacuum()
+		}
+#endif
 		await AccountManager.shared.vacuumAccountDatabases()
 	}
 

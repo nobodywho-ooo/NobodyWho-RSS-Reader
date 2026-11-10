@@ -1,6 +1,15 @@
 {
-  "originHash" : "5953c29570620373a6da43d60a8253af0dab8dd80e8d23607224a78036b1ec0c",
+  "originHash" : "9c0e4b5f9542353d9187eb7c7192612fae5744bd187c81b3f786ce353b613edc",
   "pins" : [
+    {
+      "identity" : "nobodywho-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/nobodywho-ooo/nobodywho-swift.git",
+      "state" : {
+        "revision" : "4cd76958a3e619dd6282677d99142bdc372e7ff5",
+        "version" : "6.0.0"
+      }
+    },
     {
       "identity" : "plcrashreporter",
       "kind" : "remoteSourceControl",
