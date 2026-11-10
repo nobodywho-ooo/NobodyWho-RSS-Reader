@@ -1,0 +1,162 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "FPv-AB-c01.title" : {
+      "comment" : "Class = \"NSButtonCell\"; title = \"Add\"; ObjectID = \"FPv-AB-c01\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Add"
+          }
+        }
+      }
+    },
+    "FPv-CB-c01.title" : {
+      "comment" : "Class = \"NSButtonCell\"; title = \"Hide articles whose titles match these topics\"; ObjectID = \"FPv-CB-c01\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Hide articles whose titles match these topics"
+          }
+        }
+      }
+    },
+    "FPv-FL-c01.title" : {
+      "comment" : "Class = \"NSTextFieldCell\"; title = \"Filter:\"; ObjectID = \"FPv-FL-c01\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Filter:"
+          }
+        }
+      }
+    },
+    "FPv-HL-c01.title" : {
+      "comment" : "Class = \"NSTextFieldCell\"; title = \"Confidence:\"; ObjectID = \"FPv-HL-c01\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Confidence:"
+          }
+        }
+      }
+    },
+    "FPv-HN-c01.title" : {
+      "comment" : "Class = \"NSTextFieldCell\"; title = \"Lower values hide more articles.\"; ObjectID = \"FPv-HN-c01\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Lower values hide more articles."
+          }
+        }
+      }
+    },
+    "FPv-HV-c01.title" : {
+      "comment" : "Class = \"NSTextFieldCell\"; title = \"60%\"; ObjectID = \"FPv-HV-c01\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "60%"
+          }
+        }
+      }
+    },
+    "FPv-IN-c01.title" : {
+      "comment" : "Class = \"NSTextFieldCell\"; title = \"Use the Laya decision model to filter articles. Once it’s downloaded, the model decides which articles to hide based on your preferences. It runs on your Mac and doesn’t send any data.\"; ObjectID = \"FPv-IN-c01\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Use the Laya decision model to filter articles. Once it’s downloaded, the model decides which articles to hide based on your preferences. It runs on your Mac and doesn’t send any data."
+          }
+        }
+      }
+    },
+    "FPv-MB-c01.title" : {
+      "comment" : "Class = \"NSButtonCell\"; title = \"Download\"; ObjectID = \"FPv-MB-c01\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Download"
+          }
+        }
+      }
+    },
+    "FPv-ML-c01.title" : {
+      "comment" : "Class = \"NSTextFieldCell\"; title = \"Model:\"; ObjectID = \"FPv-ML-c01\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Model:"
+          }
+        }
+      }
+    },
+    "FPv-MS-c01.title" : {
+      "comment" : "Class = \"NSTextFieldCell\"; title = \"Not downloaded\"; ObjectID = \"FPv-MS-c01\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Not downloaded"
+          }
+        }
+      }
+    },
+    "FPv-RB-c01.title" : {
+      "comment" : "Class = \"NSButtonCell\"; title = \"Remove\"; ObjectID = \"FPv-RB-c01\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Remove"
+          }
+        }
+      }
+    },
+    "FPv-SC-c01.title" : {
+      "comment" : "Class = \"NSButtonCell\"; title = \"Hide sponsored or promotional content\"; ObjectID = \"FPv-SC-c01\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Hide sponsored or promotional content"
+          }
+        }
+      }
+    },
+    "FPv-TF-c01.placeholderString" : {
+      "comment" : "Class = \"NSTextFieldCell\"; placeholderString = \"Topic, such as “microsoft”\"; ObjectID = \"FPv-TF-c01\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Topic, such as “microsoft”"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.2"
+}

@@ -64,6 +64,8 @@ struct Assets {
 		static var preferencesToolbarAppearance: RSImage { RSImage(named: "preferencesToolbarAppearance")! }
 		static let preferencesToolbarTimeline = RSImage(symbol: "list.bullet.rectangle")!
 		static let preferencesToolbarAdvanced = RSImage(symbol: "gearshape.2")!
+		static let preferencesToolbarFilter = RSImage(symbol: "line.3.horizontal.decrease.circle")!
+		static let filterModelStatus = RSImage(symbol: "circle.fill")!
 		static let readClosed = RSImage(symbol: "largecircle.fill.circle")!
 		static let readOpen = RSImage(symbol: "circle")!
 		static let refresh = RSImage(symbol: "arrow.clockwise")!

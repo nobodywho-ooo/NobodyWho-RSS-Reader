@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="25408" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none" useAutolayout="YES" customObjectInstantitationMethod="direct">
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="25408"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="FilterPreferencesViewController" customModule="NetNewsWire" customModuleProvider="target">
+            <connections>
+                <outlet property="downloadProgressIndicator" destination="FPv-PI-001" id="FPv-o01"/>
+                <outlet property="filterStatusTextField" destination="FPv-ST-001" id="FPv-o03"/>
+                <outlet property="modelButton" destination="FPv-MB-001" id="FPv-o04"/>
+                <outlet property="modelStatusImageView" destination="FPv-MD-001" id="FPv-o16"/>
+                <outlet property="modelStatusTextField" destination="FPv-MS-001" id="FPv-o05"/>
+                <outlet property="removeButton" destination="FPv-RB-001" id="FPv-o06"/>
+                <outlet property="sponsoredContentCheckbox" destination="FPv-SC-001" id="FPv-o13"/>
+                <outlet property="tableView" destination="FPv-TV-001" id="FPv-o07"/>
+                <outlet property="thresholdStepper" destination="FPv-SP-001" id="FPv-o14"/>
+                <outlet property="thresholdTextField" destination="FPv-HV-001" id="FPv-o15"/>
+                <outlet property="topicTextField" destination="FPv-TF-001" id="FPv-o08"/>
+                <outlet property="topicsCheckbox" destination="FPv-CB-001" id="FPv-o02"/>
+                <outlet property="view" destination="FPv-Rt-001" id="FPv-o09"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application" customClass="NSObject"/>
+        <view id="FPv-Rt-001">
+            <rect key="frame" x="0.0" y="0.0" width="450" height="480"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <subviews>
+                <textField focusRingType="none" verticalHuggingPriority="750" horizontalCompressionResistancePriority="1" translatesAutoresizingMaskIntoConstraints="NO" id="FPv-IN-001">
+                    <rect key="frame" x="18" y="412" width="414" height="48"/>
+                    <constraints>
+                        <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="410" id="FPv-k61"/>
+                        <constraint firstAttribute="width" priority="249" constant="410" id="FPv-k62"/>
+                    </constraints>
+                    <textFieldCell key="cell" selectable="YES" id="FPv-IN-c01">
+                        <font key="font" metaFont="system"/>
+                        <string key="title">Use the Laya decision model to filter articles. Once it’s downloaded, the model decides which articles to hide based on your preferences. It runs on your Mac and doesn’t send any data.</string>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <textField focusRingType="none" horizontalHuggingPriority="1000" verticalHuggingPriority="1000" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" translatesAutoresizingMaskIntoConstraints="NO" id="FPv-ML-001">
+                    <rect key="frame" x="66" y="368" width="46" height="16"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Model:" id="FPv-ML-c01">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <imageView horizontalHuggingPriority="1000" verticalHuggingPriority="1000" translatesAutoresizingMaskIntoConstraints="NO" id="FPv-MD-001">
+                    <rect key="frame" x="118" y="372" width="8" height="8"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="8" id="FPv-k85"/>
+                        <constraint firstAttribute="height" constant="8" id="FPv-k86"/>
+                    </constraints>
+                    <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyUpOrDown" id="FPv-MD-c01"/>
+                </imageView>
+                <textField focusRingType="none" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="FPv-MS-001">
+                    <rect key="frame" x="129" y="368" width="104" height="16"/>
+                    <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Not downloaded" id="FPv-MS-c01">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <progressIndicator hidden="YES" wantsLayer="YES" maxValue="1" style="bar" translatesAutoresizingMaskIntoConstraints="NO" id="FPv-PI-001">
+                    <rect key="frame" x="118" y="338" width="200" height="20"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="200" id="FPv-k09"/>
+                    </constraints>
+                </progressIndicator>
+                <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="FPv-MB-001">
+                    <rect key="frame" x="118" y="336" width="85" height="24"/>
+                    <buttonCell key="cell" type="push" title="Download" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="FPv-MB-c01">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="modelButtonClicked:" target="-2" id="FPv-a01"/>
+                    </connections>
+                </button>
+                <textField focusRingType="none" horizontalHuggingPriority="1000" verticalHuggingPriority="1000" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" translatesAutoresizingMaskIntoConstraints="NO" id="FPv-FL-001">
+                    <rect key="frame" x="73" y="292" width="39" height="16"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Filter:" id="FPv-FL-c01">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="FPv-SC-001">
+                    <rect key="frame" x="118" y="292" width="260" height="16"/>
+                    <buttonCell key="cell" type="check" title="Hide sponsored or promotional content" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="FPv-SC-c01">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="sponsoredContentCheckboxClicked:" target="-2" id="FPv-a06"/>
+                    </connections>
+                </button>
+                <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="FPv-CB-001">
+                    <rect key="frame" x="118" y="270" width="294" height="16"/>
+                    <buttonCell key="cell" type="check" title="Hide articles whose titles match these topics" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="FPv-CB-c01">
+                        <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="topicsCheckboxClicked:" target="-2" id="FPv-a02"/>
+                    </connections>
+                </button>
+                <textField focusRingType="none" horizontalHuggingPriority="249" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="FPv-TF-001">
+                    <rect key="frame" x="118" y="236" width="255" height="24"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" borderStyle="bezel" placeholderString="Topic, such as “microsoft”" drawsBackground="YES" id="FPv-TF-c01">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                    <connections>
+                        <action selector="addTopic:" target="-2" id="FPv-a03"/>
+                    </connections>
+                </textField>
+                <button horizontalHuggingPriority="750" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="FPv-AB-001">
+                    <rect key="frame" x="381" y="236" width="49" height="24"/>
+                    <buttonCell key="cell" type="push" title="Add" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="FPv-AB-c01">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="addTopic:" target="-2" id="FPv-a04"/>
+                    </connections>
+                </button>
+                <customView translatesAutoresizingMaskIntoConstraints="NO" id="FPv-TB-001" customClass="PreferencesTableViewBackgroundView" customModule="NetNewsWire" customModuleProvider="target">
+                    <rect key="frame" x="118" y="108" width="312" height="120"/>
+                    <subviews>
+                        <scrollView borderType="none" autohidesScrollers="YES" horizontalLineScroll="22" horizontalPageScroll="10" verticalLineScroll="22" verticalPageScroll="10" hasHorizontalScroller="NO" horizontalScrollElasticity="none" translatesAutoresizingMaskIntoConstraints="NO" id="FPv-SV-001">
+                            <rect key="frame" x="1" y="1" width="310" height="118"/>
+                            <clipView key="contentView" id="FPv-CV-001">
+                                <rect key="frame" x="0.0" y="0.0" width="310" height="118"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                <subviews>
+                                    <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" tableStyle="fullWidth" columnReordering="NO" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" rowHeight="20" viewBased="YES" id="FPv-TV-001">
+                                        <rect key="frame" x="0.0" y="0.0" width="310" height="118"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                        <size key="intercellSpacing" width="3" height="2"/>
+                                        <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                        <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
+                                        <tableColumns>
+                                            <tableColumn width="278" minWidth="40" maxWidth="1000" id="FPv-TC-001">
+                                                <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border">
+                                                    <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
+                                                    <color key="backgroundColor" name="headerColor" catalog="System" colorSpace="catalog"/>
+                                                </tableHeaderCell>
+                                                <textFieldCell key="dataCell" lineBreakMode="truncatingTail" selectable="YES" editable="YES" title="Text Cell" id="FPv-DC-001">
+                                                    <font key="font" metaFont="system"/>
+                                                    <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                    <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                                </textFieldCell>
+                                                <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
+                                                <prototypeCellViews>
+                                                    <tableCellView identifier="Cell" id="FPv-CL-001">
+                                                        <rect key="frame" x="1" y="1" width="287" height="20"/>
+                                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                                                        <subviews>
+                                                            <textField focusRingType="none" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" allowsExpansionToolTips="YES" translatesAutoresizingMaskIntoConstraints="NO" id="FPv-CT-001">
+                                                                <rect key="frame" x="4" y="2" width="279" height="16"/>
+                                                                <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Table View Cell" id="FPv-CT-c01">
+                                                                    <font key="font" metaFont="system"/>
+                                                                    <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
+                                                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                                                </textFieldCell>
+                                                            </textField>
+                                                        </subviews>
+                                                        <constraints>
+                                                            <constraint firstItem="FPv-CT-001" firstAttribute="leading" secondItem="FPv-CL-001" secondAttribute="leading" constant="6" id="FPv-k51"/>
+                                                            <constraint firstAttribute="trailing" secondItem="FPv-CT-001" secondAttribute="trailing" constant="6" id="FPv-k52"/>
+                                                            <constraint firstItem="FPv-CT-001" firstAttribute="centerY" secondItem="FPv-CL-001" secondAttribute="centerY" id="FPv-k53"/>
+                                                        </constraints>
+                                                        <connections>
+                                                            <outlet property="textField" destination="FPv-CT-001" id="FPv-o10"/>
+                                                        </connections>
+                                                    </tableCellView>
+                                                </prototypeCellViews>
+                                            </tableColumn>
+                                        </tableColumns>
+                                        <connections>
+                                            <outlet property="dataSource" destination="-2" id="FPv-o11"/>
+                                            <outlet property="delegate" destination="-2" id="FPv-o12"/>
+                                        </connections>
+                                    </tableView>
+                                </subviews>
+                            </clipView>
+                            <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="FPv-HS-001">
+                                <rect key="frame" x="-100" y="-100" width="118" height="16"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                            </scroller>
+                            <scroller key="verticalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="FPv-VS-001">
+                                <rect key="frame" x="224" y="17" width="15" height="102"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                            </scroller>
+                        </scrollView>
+                    </subviews>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="120" id="FPv-k30"/>
+                        <constraint firstItem="FPv-SV-001" firstAttribute="leading" secondItem="FPv-TB-001" secondAttribute="leading" constant="1" id="FPv-k31"/>
+                        <constraint firstItem="FPv-SV-001" firstAttribute="top" secondItem="FPv-TB-001" secondAttribute="top" constant="1" id="FPv-k32"/>
+                        <constraint firstAttribute="trailing" secondItem="FPv-SV-001" secondAttribute="trailing" constant="1" id="FPv-k33"/>
+                        <constraint firstAttribute="bottom" secondItem="FPv-SV-001" secondAttribute="bottom" constant="1" id="FPv-k34"/>
+                    </constraints>
+                </customView>
+                <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="FPv-RB-001">
+                    <rect key="frame" x="118" y="64" width="73" height="24"/>
+                    <buttonCell key="cell" type="push" title="Remove" bezelStyle="rounded" alignment="center" enabled="NO" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="FPv-RB-c01">
+                        <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="system"/>
+                    </buttonCell>
+                    <connections>
+                        <action selector="removeTopic:" target="-2" id="FPv-a05"/>
+                    </connections>
+                </button>
+                <textField focusRingType="none" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="FPv-ST-001">
+                    <rect key="frame" x="197" y="68" width="4" height="16"/>
+                    <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" id="FPv-ST-c01">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="secondaryLabelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <textField focusRingType="none" horizontalHuggingPriority="1000" verticalHuggingPriority="1000" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" translatesAutoresizingMaskIntoConstraints="NO" id="FPv-HL-001">
+                    <rect key="frame" x="34" y="24" width="78" height="16"/>
+                    <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Confidence:" id="FPv-HL-c01">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <textField focusRingType="none" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="FPv-HV-001">
+                    <rect key="frame" x="116" y="24" width="44" height="16"/>
+                    <constraints>
+                        <constraint firstAttribute="width" constant="40" id="FPv-k70"/>
+                    </constraints>
+                    <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="60%" id="FPv-HV-c01">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+                <stepper horizontalHuggingPriority="750" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="FPv-SP-001">
+                    <rect key="frame" x="162" y="20" width="20" height="24"/>
+                    <stepperCell key="cell" continuous="YES" alignment="left" increment="0.10000000000000001" minValue="0.10000000000000001" maxValue="0.90000000000000002" doubleValue="0.59999999999999998" id="FPv-SP-c01"/>
+                    <connections>
+                        <action selector="thresholdStepperClicked:" target="-2" id="FPv-a07"/>
+                    </connections>
+                </stepper>
+                <textField focusRingType="none" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="FPv-HN-001">
+                    <rect key="frame" x="188" y="24" width="199" height="16"/>
+                    <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Lower values hide more articles." id="FPv-HN-c01">
+                        <font key="font" metaFont="system"/>
+                        <color key="textColor" name="secondaryLabelColor" catalog="System" colorSpace="catalog"/>
+                        <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                    </textFieldCell>
+                </textField>
+            </subviews>
+            <constraints>
+                <constraint firstItem="FPv-MD-001" firstAttribute="leading" secondItem="FPv-Rt-001" secondAttribute="leading" constant="118" id="FPv-k01"/>
+                <constraint firstItem="FPv-MD-001" firstAttribute="leading" secondItem="FPv-ML-001" secondAttribute="trailing" constant="8" symbolic="YES" id="FPv-k02"/>
+                <constraint firstItem="FPv-MS-001" firstAttribute="leading" secondItem="FPv-MD-001" secondAttribute="trailing" constant="5" id="FPv-k83"/>
+                <constraint firstItem="FPv-MD-001" firstAttribute="centerY" secondItem="FPv-MS-001" secondAttribute="centerY" id="FPv-k84"/>
+                <constraint firstItem="FPv-ML-001" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="FPv-Rt-001" secondAttribute="leading" constant="20" id="FPv-k03"/>
+                <constraint firstItem="FPv-ML-001" firstAttribute="firstBaseline" secondItem="FPv-MS-001" secondAttribute="firstBaseline" id="FPv-k04"/>
+                <constraint firstItem="FPv-MS-001" firstAttribute="top" secondItem="FPv-IN-001" secondAttribute="bottom" constant="28" id="FPv-k05"/>
+                <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="FPv-MS-001" secondAttribute="trailing" constant="20" symbolic="YES" id="FPv-k06"/>
+                <constraint firstItem="FPv-PI-001" firstAttribute="leading" secondItem="FPv-MD-001" secondAttribute="leading" id="FPv-k07"/>
+                <constraint firstItem="FPv-PI-001" firstAttribute="centerY" secondItem="FPv-MB-001" secondAttribute="centerY" id="FPv-k08"/>
+                <constraint firstItem="FPv-MB-001" firstAttribute="leading" secondItem="FPv-MD-001" secondAttribute="leading" id="FPv-k10"/>
+                <constraint firstItem="FPv-MB-001" firstAttribute="top" secondItem="FPv-MS-001" secondAttribute="bottom" constant="8" symbolic="YES" id="FPv-k11"/>
+                <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="FPv-MB-001" secondAttribute="trailing" constant="20" symbolic="YES" id="FPv-k12"/>
+                <constraint firstItem="FPv-FL-001" firstAttribute="trailing" secondItem="FPv-ML-001" secondAttribute="trailing" id="FPv-k16"/>
+                <constraint firstItem="FPv-FL-001" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="FPv-Rt-001" secondAttribute="leading" constant="20" id="FPv-k17"/>
+                <constraint firstItem="FPv-FL-001" firstAttribute="firstBaseline" secondItem="FPv-SC-001" secondAttribute="firstBaseline" id="FPv-k18"/>
+                <constraint firstItem="FPv-CB-001" firstAttribute="leading" secondItem="FPv-MD-001" secondAttribute="leading" id="FPv-k19"/>
+                <constraint firstItem="FPv-CB-001" firstAttribute="top" secondItem="FPv-SC-001" secondAttribute="bottom" constant="8" symbolic="YES" id="FPv-k20"/>
+                <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="FPv-CB-001" secondAttribute="trailing" constant="20" symbolic="YES" id="FPv-k21"/>
+                <constraint firstItem="FPv-TF-001" firstAttribute="leading" secondItem="FPv-MD-001" secondAttribute="leading" id="FPv-k22"/>
+                <constraint firstItem="FPv-TF-001" firstAttribute="top" secondItem="FPv-CB-001" secondAttribute="bottom" constant="10" id="FPv-k23"/>
+                <constraint firstItem="FPv-AB-001" firstAttribute="leading" secondItem="FPv-TF-001" secondAttribute="trailing" constant="8" symbolic="YES" id="FPv-k24"/>
+                <constraint firstAttribute="trailing" secondItem="FPv-AB-001" secondAttribute="trailing" constant="20" symbolic="YES" id="FPv-k25"/>
+                <constraint firstItem="FPv-AB-001" firstAttribute="firstBaseline" secondItem="FPv-TF-001" secondAttribute="firstBaseline" id="FPv-k26"/>
+                <constraint firstItem="FPv-TB-001" firstAttribute="leading" secondItem="FPv-MD-001" secondAttribute="leading" id="FPv-k27"/>
+                <constraint firstItem="FPv-TB-001" firstAttribute="top" secondItem="FPv-TF-001" secondAttribute="bottom" constant="8" symbolic="YES" id="FPv-k28"/>
+                <constraint firstAttribute="trailing" secondItem="FPv-TB-001" secondAttribute="trailing" constant="20" symbolic="YES" id="FPv-k29"/>
+                <constraint firstItem="FPv-RB-001" firstAttribute="leading" secondItem="FPv-MD-001" secondAttribute="leading" id="FPv-k35"/>
+                <constraint firstItem="FPv-RB-001" firstAttribute="top" secondItem="FPv-TB-001" secondAttribute="bottom" constant="8" symbolic="YES" id="FPv-k36"/>
+                <constraint firstAttribute="bottom" secondItem="FPv-SP-001" secondAttribute="bottom" constant="20" symbolic="YES" id="FPv-k37"/>
+                <constraint firstItem="FPv-ST-001" firstAttribute="leading" secondItem="FPv-RB-001" secondAttribute="trailing" constant="8" symbolic="YES" id="FPv-k38"/>
+                <constraint firstItem="FPv-ST-001" firstAttribute="firstBaseline" secondItem="FPv-RB-001" secondAttribute="firstBaseline" id="FPv-k39"/>
+                <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="FPv-ST-001" secondAttribute="trailing" constant="20" symbolic="YES" id="FPv-k40"/>
+                <constraint firstItem="FPv-IN-001" firstAttribute="top" secondItem="FPv-Rt-001" secondAttribute="top" constant="20" symbolic="YES" id="FPv-k63"/>
+                <constraint firstItem="FPv-IN-001" firstAttribute="leading" secondItem="FPv-Rt-001" secondAttribute="leading" constant="20" symbolic="YES" id="FPv-k64"/>
+                <constraint firstAttribute="trailing" secondItem="FPv-IN-001" secondAttribute="trailing" constant="20" symbolic="YES" id="FPv-k65"/>
+                <constraint firstItem="FPv-SC-001" firstAttribute="leading" secondItem="FPv-MD-001" secondAttribute="leading" id="FPv-k66"/>
+                <constraint firstItem="FPv-SC-001" firstAttribute="top" secondItem="FPv-MB-001" secondAttribute="bottom" constant="28" id="FPv-k67"/>
+                <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="FPv-SC-001" secondAttribute="trailing" constant="20" symbolic="YES" id="FPv-k68"/>
+                <constraint firstItem="FPv-HL-001" firstAttribute="trailing" secondItem="FPv-ML-001" secondAttribute="trailing" id="FPv-k73"/>
+                <constraint firstItem="FPv-HL-001" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="FPv-Rt-001" secondAttribute="leading" constant="20" id="FPv-k74"/>
+                <constraint firstItem="FPv-HL-001" firstAttribute="firstBaseline" secondItem="FPv-HV-001" secondAttribute="firstBaseline" id="FPv-k75"/>
+                <constraint firstItem="FPv-HV-001" firstAttribute="leading" secondItem="FPv-MD-001" secondAttribute="leading" id="FPv-k76"/>
+                <constraint firstItem="FPv-SP-001" firstAttribute="top" secondItem="FPv-RB-001" secondAttribute="bottom" constant="20" symbolic="YES" id="FPv-k77"/>
+                <constraint firstItem="FPv-HV-001" firstAttribute="centerY" secondItem="FPv-SP-001" secondAttribute="centerY" id="FPv-k78"/>
+                <constraint firstItem="FPv-SP-001" firstAttribute="leading" secondItem="FPv-HV-001" secondAttribute="trailing" constant="4" id="FPv-k79"/>
+                <constraint firstItem="FPv-HN-001" firstAttribute="leading" secondItem="FPv-SP-001" secondAttribute="trailing" constant="8" symbolic="YES" id="FPv-k80"/>
+                <constraint firstItem="FPv-HN-001" firstAttribute="firstBaseline" secondItem="FPv-HV-001" secondAttribute="firstBaseline" id="FPv-k81"/>
+                <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="FPv-HN-001" secondAttribute="trailing" constant="20" symbolic="YES" id="FPv-k82"/>
+            </constraints>
+            <point key="canvasLocation" x="140" y="154"/>
+        </view>
+    </objects>
+</document>

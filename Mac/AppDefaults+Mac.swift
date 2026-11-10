@@ -48,6 +48,11 @@ extension AppDefaults.Key {
 	static let importOPMLAccountID = "importOPMLAccountID"
 	static let exportOPMLAccountID = "exportOPMLAccountID"
 	static let defaultBrowserID = "defaultBrowserID"
+	static let titleFilterTopics = "titleFilterTopics"
+	static let titleFilterHidesTopics = "titleFilterHidesTopics"
+	static let titleFilterHidesSponsoredContent = "titleFilterHidesSponsoredContent"
+	static let titleFilterThreshold = "titleFilterThreshold"
+	static let titleFilterModelPath = "titleFilterModelPath"
 
 	// Hidden prefs
 	static let showDebugMenu = "ShowDebugMenu"
@@ -94,7 +99,8 @@ extension AppDefaults {
 	// defaults, so that it can be resolved by the Safari App Extension.
 	static var subscribeToFeedDefaults: UserDefaults {
 		if let appGroupID = Bundle.main.object(forInfoDictionaryKey: "AppGroup") as? String,
-		   let appGroupDefaults = UserDefaults(suiteName: appGroupID) {
+		   let appGroupDefaults = UserDefaults(suiteName: appGroupID)
+		{
 			appGroupDefaults
 		} else {
 			UserDefaults.standard
@@ -107,6 +113,51 @@ extension AppDefaults {
 		}
 		set {
 			subscribeToFeedDefaults.set(newValue, forKey: Key.subscribeToFeedsInDefaultBrowser)
+		}
+	}
+
+	static var titleFilterTopics: [String] {
+		get {
+			UserDefaults.standard.stringArray(forKey: Key.titleFilterTopics) ?? []
+		}
+		set {
+			UserDefaults.standard.set(newValue, forKey: Key.titleFilterTopics)
+		}
+	}
+
+	static var titleFilterHidesTopics: Bool {
+		get {
+			UserDefaults.standard.bool(forKey: Key.titleFilterHidesTopics)
+		}
+		set {
+			UserDefaults.standard.set(newValue, forKey: Key.titleFilterHidesTopics)
+		}
+	}
+
+	static var titleFilterHidesSponsoredContent: Bool {
+		get {
+			UserDefaults.standard.bool(forKey: Key.titleFilterHidesSponsoredContent)
+		}
+		set {
+			UserDefaults.standard.set(newValue, forKey: Key.titleFilterHidesSponsoredContent)
+		}
+	}
+
+	static var titleFilterThreshold: Double {
+		get {
+			UserDefaults.standard.double(forKey: Key.titleFilterThreshold)
+		}
+		set {
+			UserDefaults.standard.set(newValue, forKey: Key.titleFilterThreshold)
+		}
+	}
+
+	static var titleFilterModelPath: String? {
+		get {
+			UserDefaults.standard.string(forKey: Key.titleFilterModelPath)
+		}
+		set {
+			UserDefaults.standard.set(newValue, forKey: Key.titleFilterModelPath)
 		}
 	}
 
@@ -283,10 +334,10 @@ extension AppDefaults {
 		migrateLegacyTimelineShowSeparators()
 
 		#if DEBUG
- 		let showDebugMenu = true
- 		#else
- 		let showDebugMenu = false
- 		#endif
+			let showDebugMenu = true
+		#else
+			let showDebugMenu = false
+		#endif
 
 		let platformDefaults: [String: Any] = [
 			Key.useColumnLayout: false,
@@ -295,6 +346,9 @@ extension AppDefaults {
 			Key.statusBarCountMode: StatusBarCountMode.lastRefresh.rawValue,
 			"NSScrollViewShouldScrollUnderTitlebar": false,
 			Key.refreshInterval: RefreshInterval.every2Hours.rawValue,
+			Key.titleFilterHidesTopics: true,
+			Key.titleFilterHidesSponsoredContent: true,
+			Key.titleFilterThreshold: 0.6,
 			Key.showDebugMenu: showDebugMenu,
 			Key.timelineShowSeparators: false,
 			Key.timelineIconDimension: IconSize.large.rawValue,

@@ -39,6 +39,7 @@
 		519CA8E525841DB700EB079A /* CrashReporter in Frameworks */ = {isa = PBXBuildFile; productRef = 519CA8E425841DB700EB079A /* CrashReporter */; };
 		51BC2F3824D3439A00E90810 /* Account in Frameworks */ = {isa = PBXBuildFile; productRef = 51BC2F3724D3439A00E90810 /* Account */; };
 		51C4CFF624D37DD500AF9874 /* Secrets in Frameworks */ = {isa = PBXBuildFile; productRef = 51C4CFF524D37DD500AF9874 /* Secrets */; };
+		538E898A309B738C007241B4 /* NobodyWho in Frameworks */ = {isa = PBXBuildFile; productRef = 538E8989309B738C007241B4 /* NobodyWho */; };
 		840958632201629A002C1579 /* Subscribe to Feed.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 6581C73320CED60000F4AD34 /* Subscribe to Feed.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		8424B3182DB73D4C0053AA11 /* RSParser in Frameworks */ = {isa = PBXBuildFile; productRef = 8424B3172DB73D4C0053AA11 /* RSParser */; };
 		8424B3192DB73D4C0053AA11 /* RSParser in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 8424B3172DB73D4C0053AA11 /* RSParser */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -533,6 +534,7 @@
 				848E84D02DB749440023F3BA /* RSCoreResources in Frameworks */,
 				513277642590FC640064F1E7 /* SyncDatabase in Frameworks */,
 				17192ADA2567B3D500AAEACA /* Sparkle in Frameworks */,
+				538E898A309B738C007241B4 /* NobodyWho in Frameworks */,
 				5132775E2590FC640064F1E7 /* Articles in Frameworks */,
 				84EE43482DB8A441009D3A8D /* RSDatabase in Frameworks */,
 				84EE3F122DB8A088009D3A8D /* RSTree in Frameworks */,
@@ -824,6 +826,7 @@
 				848E84CF2DB749440023F3BA /* RSCoreResources */,
 				84EE3F112DB8A088009D3A8D /* RSTree */,
 				84EE43472DB8A441009D3A8D /* RSDatabase */,
+				538E8989309B738C007241B4 /* NobodyWho */,
 			);
 			productName = NetNewsWire;
 			productReference = 849C64601ED37A5D003D8FC0 /* NetNewsWire.app */;
@@ -931,6 +934,7 @@
 				17192AD82567B3D500AAEACA /* XCRemoteSwiftPackageReference "Sparkle" */,
 				519CA8E325841DB700EB079A /* XCRemoteSwiftPackageReference "plcrashreporter" */,
 				179D280926F6F93D003B2E0A /* XCRemoteSwiftPackageReference "Zip" */,
+				538E8988309B738C007241B4 /* XCRemoteSwiftPackageReference "nobodywho-swift" */,
 			);
 			preferredProjectObjectVersion = 46;
 			productRefGroup = 849C64611ED37A5D003D8FC0 /* Products */;
@@ -1488,6 +1492,14 @@
 				minimumVersion = 1.8.1;
 			};
 		};
+		538E8988309B738C007241B4 /* XCRemoteSwiftPackageReference "nobodywho-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/nobodywho-ooo/nobodywho-swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1562,6 +1574,11 @@
 		51C4CFF524D37DD500AF9874 /* Secrets */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Secrets;
+		};
+		538E8989309B738C007241B4 /* NobodyWho */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 538E8988309B738C007241B4 /* XCRemoteSwiftPackageReference "nobodywho-swift" */;
+			productName = NobodyWho;
 		};
 		8424B3172DB73D4C0053AA11 /* RSParser */ = {
 			isa = XCSwiftPackageProductDependency;
