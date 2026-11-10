@@ -118,6 +118,8 @@ final class TimelineViewController: NSViewController, UndoableCommandRunner, Unr
 		return tableView.selectedRow != -1
 	}
 
+	private var articlesHiddenByTitleFilter = ArticleArray()
+
 	var articles = ArticleArray() {
 		didSet {
 			defer {
@@ -317,7 +319,7 @@ final class TimelineViewController: NSViewController, UndoableCommandRunner, Unr
 	// MARK: - API
 
 	func markAllAsRead(completion: (() -> Void)? = nil) {
-		guard let undoManager = undoManager, let markReadCommand = MarkStatusCommand(initialArticles: articles, markingRead: true, undoManager: undoManager, completion: completion) else {
+		guard let undoManager = undoManager, let markReadCommand = MarkStatusCommand(initialArticles: articles + articlesHiddenByTitleFilter, markingRead: true, undoManager: undoManager, completion: completion) else {
 			completion?()
 			return
 		}
@@ -325,7 +327,7 @@ final class TimelineViewController: NSViewController, UndoableCommandRunner, Unr
 	}
 
 	func canMarkAllAsRead() -> Bool {
-		return articles.canMarkAllAsRead()
+		return articles.canMarkAllAsRead() || articlesHiddenByTitleFilter.canMarkAllAsRead()
 	}
 
 	func canMarkSelectedArticlesAsRead() -> Bool {
@@ -804,11 +806,11 @@ final class TimelineViewController: NSViewController, UndoableCommandRunner, Unr
 	}
 
 	@objc func removeHiddenArticles() {
-		let selectedArticleIDs = Set(selectedArticleIDs())
-		let remainingArticles = articles.filter { selectedArticleIDs.contains($0.articleID) || !TitleFilter.shared.isHidden($0) }
-		guard remainingArticles.count != articles.count else {
+		let (remainingArticles, newlyHiddenArticles) = TitleFilter.shared.partition(articles, keeping: Set(selectedArticleIDs()))
+		guard !newlyHiddenArticles.isEmpty else {
 			return
 		}
+		articlesHiddenByTitleFilter += newlyHiddenArticles
 		performBlockAndRestoreSelection {
 			articles = remainingArticles
 		}
@@ -1332,6 +1334,7 @@ private extension TimelineViewController {
 	}
 
 	func emptyTheTimeline() {
+		articlesHiddenByTitleFilter = []
 		if !articles.isEmpty {
 			articles = [Article]()
 		}
@@ -1339,7 +1342,7 @@ private extension TimelineViewController {
 
 	func sortParametersDidChange() {
 		performBlockAndRestoreSelection {
-			let unsortedArticles = Set(articles)
+			let unsortedArticles = Set(articles + articlesHiddenByTitleFilter)
 			replaceArticles(with: unsortedArticles)
 		}
 	}
@@ -1497,7 +1500,9 @@ private extension TimelineViewController {
 
 	func replaceArticles(with unsortedArticles: Set<Article>) {
 		let sortedArticles = Array(unsortedArticles).sorted(by: sortParameters)
-		articles = TitleFilter.shared.visibleArticles(sortedArticles, keeping: Set(selectedArticleIDs()))
+		let (visibleArticles, articlesHiddenByTitleFilter) = TitleFilter.shared.partition(sortedArticles, keeping: Set(selectedArticleIDs()))
+		self.articlesHiddenByTitleFilter = articlesHiddenByTitleFilter
+		articles = visibleArticles
 	}
 
 	func fetchUnsortedArticlesSync(for representedObjects: [Any]) -> Set<Article> {

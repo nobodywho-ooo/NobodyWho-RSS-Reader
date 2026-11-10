@@ -55,7 +55,6 @@ extension AppDefaults.Key {
 	static let titleFilterHidesTopics = "titleFilterHidesTopics"
 	static let titleFilterHidesSponsoredContent = "titleFilterHidesSponsoredContent"
 	static let titleFilterThreshold = "titleFilterThreshold"
-	static let titleFilterModelPath = "titleFilterModelPath"
 
 	// Hidden prefs
 	static let showDebugMenu = "ShowDebugMenu"
@@ -105,8 +104,7 @@ extension AppDefaults {
 	// defaults, so that it can be resolved by the Safari App Extension.
 	static var subscribeToFeedDefaults: UserDefaults {
 		if let appGroupID = Bundle.main.object(forInfoDictionaryKey: "AppGroup") as? String,
-		   let appGroupDefaults = UserDefaults(suiteName: appGroupID)
-		{
+		   let appGroupDefaults = UserDefaults(suiteName: appGroupID) {
 			appGroupDefaults
 		} else {
 			UserDefaults.standard
@@ -155,15 +153,6 @@ extension AppDefaults {
 		}
 		set {
 			UserDefaults.standard.set(newValue, forKey: Key.titleFilterThreshold)
-		}
-	}
-
-	static var titleFilterModelPath: String? {
-		get {
-			UserDefaults.standard.string(forKey: Key.titleFilterModelPath)
-		}
-		set {
-			UserDefaults.standard.set(newValue, forKey: Key.titleFilterModelPath)
 		}
 	}
 
@@ -359,10 +348,10 @@ extension AppDefaults {
 		}
 
 		#if DEBUG
-			let showDebugMenu = true
-		#else
-			let showDebugMenu = false
-		#endif
+ 		let showDebugMenu = true
+ 		#else
+ 		let showDebugMenu = false
+ 		#endif
 
 		let platformDefaults: [String: Any] = [
 			Key.sidebarFontSize: FontSize.medium.rawValue,
@@ -376,7 +365,7 @@ extension AppDefaults {
 			Key.refreshInterval: RefreshInterval.every2Hours.rawValue,
 			Key.titleFilterHidesTopics: true,
 			Key.titleFilterHidesSponsoredContent: true,
-			Key.titleFilterThreshold: 0.6,
+			Key.titleFilterThreshold: 0.5,
 			Key.showDebugMenu: showDebugMenu
 		]
 
