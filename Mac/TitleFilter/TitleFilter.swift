@@ -61,11 +61,10 @@ extension Notification.Name {
 
 	let database: TitleFilterDatabase
 
-	private static let modelSource = "hf://ggml-org/Laya-GGUF/Laya-Q8_0.gguf"
+	private static let modelSourceURL = URL(string: "https://huggingface.co/ggml-org/Laya-GGUF/resolve/main/Laya-Q8_0.gguf")
 	private static let modelFileName = "Laya-Q8_0.gguf"
+	private static let modelFolderName = "TitleFilter"
 	private static let idleUnloadInterval: TimeInterval = 60
-	private static let downloadStallInterval: TimeInterval = 10
-	private static let downloadStallCheckInterval: TimeInterval = 1
 
 	private static let logger = Logger(subsystem: Logger.nnwSubsystem, category: "TitleFilter")
 
@@ -75,44 +74,40 @@ extension Notification.Name {
 		case unknown
 	}
 
-	fileprivate enum Criterion {
-		case sponsoredContent
-		case topic(String)
+	fileprivate struct Criterion {
+		let key: String
+		let instructions: String
 
 		static let sponsoredContentKey = ""
 
-		var key: String {
-			switch self {
-			case .sponsoredContent:
-				Self.sponsoredContentKey
-			case let .topic(topic):
-				topic.lowercased()
-			}
+		static let sponsoredContent = Criterion(
+			key: sponsoredContentKey,
+			instructions: "Does this title suggest the article is sponsored or promotional content?"
+		)
+
+		static func key(forTopic topic: String) -> String {
+			topic.lowercased()
 		}
 
-		var instructions: String {
-			switch self {
-			case .sponsoredContent:
-				"Does this title suggest the article is sponsored or promotional content?"
-			case let .topic(topic):
-				"The reader asked to hide news articles matching “\(topic)”. Does this article title match? Answer yes if the article is about \(topic) or is itself an example of \(topic)."
-			}
+		static func topic(_ topic: String) -> Criterion {
+			Criterion(
+				key: key(forTopic: topic),
+				instructions: "The reader asked to hide news articles matching “\(topic)”. Does this article title match? Answer yes if the article is about \(topic) or is itself an example of \(topic)."
+			)
 		}
 	}
 
 	private var verdicts: [String: [String: Double]]
+	private var activeCriteria = [Criterion]()
 	private var pendingTitles = [String]()
-	private var pendingTitleSet = Set<String>()
 	private var titlesWithUpdatedDateLastSeen = Set<String>()
 	private var modelPath: String?
 	private var decision: Decision?
+	private var modelLoadTask: Task<Decision?, Never>?
 	private var workerTask: Task<Void, Never>?
 	private var workerGeneration = 0
 	private var idleUnloadTimer: Timer?
-	private var isDownloading = false
-	private var downloadGeneration = 0
-	private var dateLastDownloadProgress = Date()
-	private var downloadStallTimer: Timer?
+	private var downloader: TitleFilterModelDownloader?
 
 	private init() {
 		let savedTopics = AppDefaults.titleFilterTopics
@@ -122,24 +117,27 @@ extension Notification.Name {
 		threshold = AppDefaults.titleFilterThreshold
 		database = TitleFilterDatabase()
 		
-		let criterionKeys = Set(savedTopics.map { Criterion.topic($0).key }).union([Criterion.sponsoredContentKey])
+		let criterionKeys = Set(savedTopics.map { Criterion.key(forTopic: $0) }).union([Criterion.sponsoredContentKey])
 		verdicts = database.cleanUpOldAndFetchAll(topicKeys: criterionKeys)
 
-		modelPath = Self.existingModelPath(savedPath: AppDefaults.titleFilterModelPath)
+		modelPath = Self.existingModelPath()
 		modelState = modelPath == nil ? .notDownloaded : .downloaded
+		updateActiveCriteria()
 	}
 
 	// MARK: - Filtering
 
-	/// Returns the articles that aren’t hidden, in the same order.
-	/// Titles that haven’t been judged yet stay visible and are queued for decision.
-	func visibleArticles(_ articles: [Article], keeping keptArticleIDs: Set<String> = []) -> [Article] {
+	/// Splits articles into those that stay visible and those that are hidden, each in the same order.
+	/// Articles in `keptArticleIDs` always stay visible.
+	/// Titles that haven’t been judged yet stay visible and, if `queuesUnjudgedTitles` is true, are queued for decision.
+	func partition(_ articles: [Article], keeping keptArticleIDs: Set<String> = [], queuesUnjudgedTitles: Bool = true) -> (visible: [Article], hidden: [Article]) {
 		guard isActive else {
-			return articles
+			return (articles, [])
 		}
 
 		var visibleArticles = [Article]()
 		visibleArticles.reserveCapacity(articles.count)
+		var hiddenArticles = [Article]()
 		var unjudgedTitles = [String]()
 		var titlesNeedingDateLastSeenUpdate = [String]()
 
@@ -158,7 +156,7 @@ extension Notification.Name {
 
 			switch verdict(for: title) {
 			case .hidden:
-				continue
+				hiddenArticles.append(article)
 			case .visible:
 				visibleArticles.append(article)
 			case .unknown:
@@ -169,15 +167,10 @@ extension Notification.Name {
 
 		// Keeps verdicts for titles that still show up from being deleted at startup.
 		database.updateDateLastSeen(titles: titlesNeedingDateLastSeenUpdate)
-		enqueue(unjudgedTitles)
-		return visibleArticles
-	}
-
-	func isHidden(_ article: Article) -> Bool {
-		guard isActive, let title = Self.title(for: article) else {
-			return false
+		if queuesUnjudgedTitles {
+			enqueue(unjudgedTitles)
 		}
-		return verdict(for: title) == .hidden
+		return (visibleArticles, hiddenArticles)
 	}
 
 	// MARK: - Topics
@@ -198,7 +191,7 @@ extension Notification.Name {
 			return
 		}
 		topics.remove(at: index)
-		let topicKey = Criterion.topic(topic).key
+		let topicKey = Criterion.key(forTopic: topic)
 		verdicts.removeValue(forKey: topicKey)
 		database.deleteTopic(topicKey)
 		topicsDidChange()
@@ -236,30 +229,32 @@ extension Notification.Name {
 	// MARK: - Model
 
 	func downloadModel() {
-		guard !isDownloading, modelPath == nil else {
+		guard downloader == nil, modelPath == nil, let modelSourceURL = Self.modelSourceURL else {
 			return
 		}
-		isDownloading = true
-		downloadGeneration += 1
-		let generation = downloadGeneration
 		modelState = .downloading(fractionCompleted: nil)
-		startDownloadStallTimer()
 
-		let progressHandler = Self.makeDownloadProgressHandler(generation: generation)
-		Task {
-			do {
-				let path = try await Model.downloadModel(modelPath: Self.modelSource, onDownloadProgress: progressHandler)
-				downloadDidFinish(path: path, generation: generation)
-			} catch {
-				downloadDidFail(error, generation: generation)
+		let modelFileURL = Self.modelFileURL
+		let downloader = TitleFilterModelDownloader(
+			sourceURL: modelSourceURL,
+			destinationURL: modelFileURL,
+			progressHandler: { fractionCompleted in
+				TitleFilter.shared.downloadDidProgress(fractionCompleted)
+			},
+			completionHandler: { result in
+				TitleFilter.shared.downloadDidComplete(result, modelPath: modelFileURL.path)
 			}
-		}
+		)
+		self.downloader = downloader
+		downloader.start()
 	}
 
 	func deleteModel() {
+		downloader?.cancel()
+		downloader = nil
 		unloadModel()
+		modelLoadTask = nil
 		pendingTitles.removeAll()
-		pendingTitleSet.removeAll()
 		pendingCount = 0
 
 		if let modelPath {
@@ -270,7 +265,6 @@ extension Notification.Name {
 			}
 		}
 		modelPath = nil
-		AppDefaults.titleFilterModelPath = nil
 
 		verdicts.removeAll()
 		database.deleteAll()
@@ -288,7 +282,7 @@ private extension TitleFilter {
 		return title.isEmpty ? nil : title
 	}
 
-	var activeCriteria: [Criterion] {
+	func updateActiveCriteria() {
 		var criteria = [Criterion]()
 		if hidesSponsoredContent {
 			criteria.append(.sponsoredContent)
@@ -296,7 +290,11 @@ private extension TitleFilter {
 		if hidesTopics {
 			criteria += topics.map { .topic($0) }
 		}
-		return criteria
+		activeCriteria = criteria
+	}
+
+	var knownCriterionKeys: Set<String> {
+		Set(topics.map { Criterion.key(forTopic: $0) }).union([Criterion.sponsoredContentKey])
 	}
 
 	func verdict(for title: String) -> Verdict {
@@ -323,10 +321,10 @@ private extension TitleFilter {
 	}
 
 	func settingsDidChange() {
+		updateActiveCriteria()
 		if !isActive {
 			unloadModel()
 			pendingTitles.removeAll()
-			pendingTitleSet.removeAll()
 			pendingCount = 0
 		}
 		NotificationCenter.default.post(name: .titleFilterSettingsDidChange, object: self)
@@ -342,13 +340,11 @@ private extension TitleFilter {
 		var newTitles = [String]()
 		var newTitleSet = Set<String>()
 
-		for title in titles where !newTitleSet.contains(title) {
+		for title in titles where newTitleSet.insert(title).inserted {
 			newTitles.append(title)
-			newTitleSet.insert(title)
 		}
 
 		pendingTitles = pendingTitles.filter { !newTitleSet.contains($0) } + newTitles.reversed()
-		pendingTitleSet.formUnion(newTitleSet)
 		pendingCount = pendingTitles.count
 
 		startWorkerIfNeeded()
@@ -379,7 +375,6 @@ private extension TitleFilter {
 		}
 
 		while isActive, self.decision === decision, !Task.isCancelled, let title = pendingTitles.popLast() {
-			pendingTitleSet.remove(title)
 			pendingCount = pendingTitles.count
 
 			let criteriaToJudge = activeCriteria.filter { verdicts[$0.key]?[title] == nil }
@@ -390,10 +385,19 @@ private extension TitleFilter {
 			let probabilities: [String: Double]
 			do {
 				probabilities = try await Self.judge(title: title, criteria: criteriaToJudge, decision: decision)
+			} catch is CancellationError {
+				return
 			} catch {
+				guard !Task.isCancelled else {
+					return
+				}
 				Self.logger.error("Couldn’t judge title: \(error.localizedDescription)")
 				// Treat it as not matching, so a title that keeps failing doesn’t get retried forever.
 				probabilities = Dictionary(uniqueKeysWithValues: criteriaToJudge.map { ($0.key, 0.0) })
+			}
+
+			guard !Task.isCancelled, self.decision === decision else {
+				return
 			}
 
 			record(probabilities, for: title)
@@ -401,8 +405,9 @@ private extension TitleFilter {
 	}
 
 	func record(_ probabilities: [String: Double], for title: String) {
+		let knownCriterionKeys = knownCriterionKeys
 		var didHide = false
-		for (criterionKey, probability) in probabilities {
+		for (criterionKey, probability) in probabilities where knownCriterionKeys.contains(criterionKey) {
 			verdicts[criterionKey, default: [:]][title] = probability
 			database.save(topicKey: criterionKey, title: title, probability: probability)
 			if probability >= threshold {
@@ -445,21 +450,40 @@ private extension TitleFilter {
 			return decision
 		}
 
+		if let modelLoadTask {
+			return await modelLoadTask.value
+		}
+
 		guard let modelPath else {
 			return nil
 		}
 
+		let task = Task {
+			await loadDecision(modelPath: modelPath)
+		}
+		modelLoadTask = task
+		let decision = await task.value
+		if modelLoadTask == task {
+			modelLoadTask = nil
+		}
+		return decision
+	}
+
+	func loadDecision(modelPath: String) async -> Decision? {
 		do {
 			let model = try await Model.load(modelPath: modelPath)
 			let decision = try Decision(model: model)
 
-			guard self.modelPath == modelPath else {
+			guard self.modelPath == modelPath, isActive else {
 				return nil
 			}
 
 			self.decision = decision
 			return decision
 		} catch {
+			guard self.modelPath == modelPath else {
+				return nil
+			}
 			Self.logger.error("Couldn’t load filter model: \(error.localizedDescription)")
 
 			deleteModel()
@@ -500,107 +524,36 @@ private extension TitleFilter {
 
 	// MARK: Downloading
 
-	nonisolated static func makeDownloadProgressHandler(generation: Int) -> @Sendable (UInt64, UInt64) -> Void {
-		return { downloadedBytes, totalBytes in
-			Task { @MainActor in
-				TitleFilter.shared.downloadDidProgress(downloadedBytes: downloadedBytes, totalBytes: totalBytes, generation: generation)
-			}
-		}
+	static var modelFileURL: URL {
+		AppConfig.dataSubfolder(named: modelFolderName).appendingPathComponent(modelFileName)
 	}
 
-	func isCurrentDownload(_ generation: Int) -> Bool {
-		isDownloading && generation == downloadGeneration
-	}
-
-	func downloadDidProgress(downloadedBytes: UInt64, totalBytes: UInt64, generation: Int) {
-		guard isCurrentDownload(generation) else {
+	func downloadDidProgress(_ fractionCompleted: Double?) {
+		guard downloader != nil, case .downloading = modelState else {
 			return
 		}
-		dateLastDownloadProgress = Date()
-		guard totalBytes > 0 else {
-			return
-		}
-
-		let percent = Double(min(downloadedBytes, totalBytes) * 100 / totalBytes)
-		let fractionCompleted = percent / 100.0
-
-		if case let .downloading(currentFraction) = modelState, let currentFraction, currentFraction >= fractionCompleted {
-			return
-		}
-
 		modelState = .downloading(fractionCompleted: fractionCompleted)
 	}
 
-	func downloadDidFinish(path: String, generation: Int) {
-		guard isCurrentDownload(generation) else {
-			if modelPath == nil, !isDownloading {
-				Self.logger.info("Abandoned filter model download finished")
-				useDownloadedModel(path: path)
-			}
+	func downloadDidComplete(_ result: Result<Void, Error>, modelPath: String) {
+		guard downloader != nil else {
 			return
 		}
-		isDownloading = false
-		invalidateDownloadStallTimer()
-		useDownloadedModel(path: path)
-	}
+		downloader = nil
 
-	func useDownloadedModel(path: String) {
-		modelPath = path
-		AppDefaults.titleFilterModelPath = path
-		modelState = .downloaded
-		Self.logger.info("Filter model downloaded")
-		NotificationCenter.default.post(name: .titleFilterSettingsDidChange, object: self)
-	}
-
-	func downloadDidFail(_ error: Error, generation: Int) {
-		guard isCurrentDownload(generation) else {
-			return
-		}
-		Self.logger.error("Filter model download failed: \(error.localizedDescription)")
-		markDownloadFailed()
-	}
-
-	func markDownloadFailed() {
-		isDownloading = false
-		invalidateDownloadStallTimer()
-		modelState = .failed(message: NSLocalizedString("The download failed", comment: "Filter settings"))
-	}
-
-	/// The download API can’t time out or be cancelled, so a download that stops making progress is treated as failed.
-	func startDownloadStallTimer() {
-		invalidateDownloadStallTimer()
-		dateLastDownloadProgress = Date()
-		downloadStallTimer = Timer.scheduledTimer(withTimeInterval: Self.downloadStallCheckInterval, repeats: true) { _ in
-			MainActor.assumeIsolated {
-				TitleFilter.shared.checkForDownloadStall()
-			}
+		switch result {
+		case .success:
+			self.modelPath = modelPath
+			modelState = .downloaded
+			Self.logger.info("Filter model downloaded")
+			NotificationCenter.default.post(name: .titleFilterSettingsDidChange, object: self)
+		case .failure:
+			modelState = .failed(message: NSLocalizedString("The download failed", comment: "Filter settings"))
 		}
 	}
 
-	func invalidateDownloadStallTimer() {
-		downloadStallTimer?.invalidate()
-		downloadStallTimer = nil
-	}
-
-	func checkForDownloadStall() {
-		guard isDownloading else {
-			invalidateDownloadStallTimer()
-			return
-		}
-		guard Date().timeIntervalSince(dateLastDownloadProgress) >= Self.downloadStallInterval else {
-			return
-		}
-		Self.logger.error("Filter model download stalled")
-		markDownloadFailed()
-	}
-
-	static func existingModelPath(savedPath: String?) -> String? {
-		if let savedPath, FileManager.default.fileExists(atPath: savedPath) {
-			return savedPath
-		}
-
-		let cachedModels = (try? getCachedModels()) ?? []
-
-		return cachedModels.first { ($0.path as NSString).lastPathComponent == modelFileName }?.path
+	static func existingModelPath() -> String? {
+		let path = modelFileURL.path
+		return FileManager.default.fileExists(atPath: path) ? path : nil
 	}
 }

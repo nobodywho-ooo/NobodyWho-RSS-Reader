@@ -1434,6 +1434,9 @@
         }
       }
     },
+    "The server responded with status %ld." : {
+      "comment" : "Filter model download error"
+    },
     "The theme “%@” already exists. Overwrite it?" : {
       "comment" : "Overwrite theme"
     },
