@@ -7,7 +7,7 @@ set -euo pipefail
 
 PROJECT_PATH="NetNewsWire.xcodeproj"
 SCHEME_MAC="NetNewsWire"
-APP_NAME="NetNewsWire.app"
+APP_NAME="NobodyWho RSS Reader.app"
 DESTINATION_APP="$HOME/Desktop/$APP_NAME"
 
 WORK_DIRECTORY="$(mktemp -d)"

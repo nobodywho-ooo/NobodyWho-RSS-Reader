@@ -8,7 +8,7 @@ PROJECT_PATH="NetNewsWire.xcodeproj"
 SCHEME="NetNewsWire"
 DESTINATION="platform=macOS"
 DESKTOP="$HOME/Desktop"
-APP_NAME="NetNewsWire.app"
+APP_NAME="NobodyWho RSS Reader.app"
 
 echo "Building universal binary..."
 xcodebuild \
