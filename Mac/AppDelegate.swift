@@ -100,6 +100,9 @@ let appName = "NetNewsWire"
 	private var accountStatsWindowController: AccountStatsWindowController?
 	private let appMovementMonitor: RSAppMovementMonitor
 	private var softwareUpdater: SPUUpdater?
+
+	/// Sparkle updates are disabled until this build has its own appcast.
+	static let isSoftwareUpdateEnabled = false
 	private var crashReporter: PLCrashReporter?
 
 	private var themeImportPath: String?
@@ -162,25 +165,29 @@ let appName = "NetNewsWire"
 		// Load now, while the app bundle is readable. A translocated app that gets moved can’t read it later.
 		_ = MainWindowKeyboardHandler.shared
 
-		// Ensure the Sparkle feed URL is one of the two supported URLs.
-		// Default to the release builds URL from Info.plist.
-		if let infoDictionary = Bundle.main.infoDictionary,
-		   let releaseBuildsURL = infoDictionary["SUFeedURL"] as? String,
-		   let testBuildsURL = infoDictionary["FeedURLForTestBuilds"] as? String,
-		   let currentFeedURL = UserDefaults.standard.string(forKey: "SUFeedURL"),
-		   currentFeedURL != releaseBuildsURL && currentFeedURL != testBuildsURL {
-			UserDefaults.standard.set(releaseBuildsURL, forKey: "SUFeedURL")
-		}
+		if Self.isSoftwareUpdateEnabled {
+			// Ensure the Sparkle feed URL is one of the two supported URLs.
+			// Default to the release builds URL from Info.plist.
+			if let infoDictionary = Bundle.main.infoDictionary,
+			   let releaseBuildsURL = infoDictionary["SUFeedURL"] as? String,
+			   let testBuildsURL = infoDictionary["FeedURLForTestBuilds"] as? String,
+			   let currentFeedURL = UserDefaults.standard.string(forKey: "SUFeedURL"),
+			   currentFeedURL != releaseBuildsURL && currentFeedURL != testBuildsURL {
+				UserDefaults.standard.set(releaseBuildsURL, forKey: "SUFeedURL")
+			}
 
-		// Initialize Sparkle...
-		let hostBundle = Bundle.main
-		let updateDriver = SPUStandardUserDriver(hostBundle: hostBundle, delegate: self)
-		softwareUpdater = SPUUpdater(hostBundle: hostBundle, applicationBundle: hostBundle, userDriver: updateDriver, delegate: self)
+			// Initialize Sparkle...
+			let hostBundle = Bundle.main
+			let updateDriver = SPUStandardUserDriver(hostBundle: hostBundle, delegate: self)
+			softwareUpdater = SPUUpdater(hostBundle: hostBundle, applicationBundle: hostBundle, userDriver: updateDriver, delegate: self)
 
-		do {
-			try softwareUpdater?.start()
-		} catch {
-			Self.logger.error("Failed to start software updater with error: \(error.localizedDescription)")
+			do {
+				try softwareUpdater?.start()
+			} catch {
+				Self.logger.error("Failed to start software updater with error: \(error.localizedDescription)")
+			}
+		} else {
+			checkForUpdatesMenuItem.isHidden = true
 		}
 
 		AppDefaults.registerDefaults()
@@ -464,6 +471,10 @@ let appName = "NetNewsWire"
 		}
 
 		let isDisplayingSheet = mainWindowController?.isDisplayingSheet ?? false
+
+		if item.action == #selector(checkForUpdates(_:)) {
+			return Self.isSoftwareUpdateEnabled
+		}
 
 		if item.action == #selector(refreshAll(_:)) {
 			return AccountManager.shared.canRefresh

@@ -8,6 +8,7 @@
         <customObject id="-2" userLabel="File's Owner" customClass="CrashReportWindowController" customModule="NetNewsWire" customModuleProvider="target">
             <connections>
                 <outlet property="dontSendButton" destination="o4V-7L-v6D" id="Sxa-iT-OTj"/>
+                <outlet property="sendAutomaticallyButton" destination="MDs-Wi-EiJ" id="cR1-aa-003"/>
                 <outlet property="sendCrashLogButton" destination="fcK-kG-dtY" id="T04-pD-qZq"/>
                 <outlet property="textView" destination="hW5-cq-81L" id="RLj-Ti-pGC"/>
                 <outlet property="window" destination="QvC-M9-y7g" id="4kq-h9-osI"/>

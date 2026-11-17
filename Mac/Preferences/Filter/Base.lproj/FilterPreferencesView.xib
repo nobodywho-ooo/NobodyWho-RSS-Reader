@@ -91,7 +91,7 @@
                 </textField>
                 <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="FPv-SC-001">
                     <rect key="frame" x="118" y="292" width="260" height="16"/>
-                    <buttonCell key="cell" type="check" title="Hide sponsored or promotional content" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="FPv-SC-c01">
+                    <buttonCell key="cell" type="check" title="Hide sponsored or promotional content" bezelStyle="regularSquare" imagePosition="left" inset="2" id="FPv-SC-c01">
                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                         <font key="font" metaFont="system"/>
                     </buttonCell>
@@ -101,7 +101,7 @@
                 </button>
                 <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="FPv-CB-001">
                     <rect key="frame" x="118" y="270" width="294" height="16"/>
-                    <buttonCell key="cell" type="check" title="Hide articles whose titles match these topics" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="FPv-CB-c01">
+                    <buttonCell key="cell" type="check" title="Hide articles whose titles match these topics" bezelStyle="regularSquare" imagePosition="left" inset="2" id="FPv-CB-c01">
                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                         <font key="font" metaFont="system"/>
                     </buttonCell>
