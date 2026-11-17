@@ -20,6 +20,7 @@ final class CrashReportWindowController: NSWindowController {
 
 	@IBOutlet var sendCrashLogButton: NSButton!
 	@IBOutlet var dontSendButton: NSButton!
+	@IBOutlet var sendAutomaticallyButton: NSButton!
 
 	var testing = false // If true, crashLog won’t actually be sent.
 
@@ -39,6 +40,7 @@ final class CrashReportWindowController: NSWindowController {
 
 	override func windowDidLoad() {
 		super.windowDidLoad()
+		sendAutomaticallyButton.isHidden = !CrashReporter.isAutomaticSendingEnabled
 		window!.center()
 	}
 

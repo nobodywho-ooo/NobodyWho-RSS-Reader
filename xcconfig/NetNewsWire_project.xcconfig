@@ -57,3 +57,7 @@ OTHER_SWIFT_FLAGS = $(inherited) -enable-upcoming-feature NonisolatedNonsendingB
 
 // https://forums.swift.org/t/swift-packages-in-multiple-targets-results-in-this-will-result-in-duplication-of-library-code-errors/34892/33
 DISABLE_DIAMOND_PROBLEM_DIAGNOSTIC = YES
+
+// NobodyWho's NobodyWhoNative.xcframework ships an arm64-only macOS slice,
+// so universal (arm64 + x86_64) Mac builds fail to link. Build Mac targets for Apple Silicon only.
+EXCLUDED_ARCHS[sdk=macosx*] = x86_64

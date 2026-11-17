@@ -10,6 +10,13 @@
                 <outlet property="releaseBuildsButton" destination="QCu-J4-0yV" id="mjo-l6-P3b"/>
                 <outlet property="testBuildsButton" destination="CeE-AE-hRG" id="mFo-DS-g83"/>
                 <outlet property="view" destination="Hij-7D-6Pw" id="aPv-Ow-2b2"/>
+                <outlet property="appUpdatesLabel" destination="EH5-aS-E55" id="sU1-aa-001"/>
+                <outlet property="checkAutomaticallyButton" destination="T4A-0o-p2w" id="sU1-aa-002"/>
+                <outlet property="downloadLabel" destination="Q6M-Iz-Ypx" id="sU1-aa-003"/>
+                <outlet property="buildTypeExplanationLabel" destination="MzL-QQ-2oL" id="sU1-aa-006"/>
+                <outlet property="checkForUpdatesButton" destination="TKI-a9-bRX" id="sU1-aa-007"/>
+                <outlet property="crashLogsLabel" destination="SUN-k3-ZEb" id="cR1-aa-001"/>
+                <outlet property="sendCrashLogsAutomaticallyButton" destination="UHg-1l-FlD" id="cR1-aa-002"/>
             </connections>
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>

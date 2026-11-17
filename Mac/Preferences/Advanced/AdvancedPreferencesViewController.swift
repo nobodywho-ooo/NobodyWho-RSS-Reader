@@ -13,6 +13,13 @@ final class AdvancedPreferencesViewController: NSViewController {
 
 	@IBOutlet var releaseBuildsButton: NSButton!
 	@IBOutlet var testBuildsButton: NSButton!
+	@IBOutlet var appUpdatesLabel: NSTextField!
+	@IBOutlet var checkAutomaticallyButton: NSButton!
+	@IBOutlet var downloadLabel: NSTextField!
+	@IBOutlet var buildTypeExplanationLabel: NSTextField!
+	@IBOutlet var checkForUpdatesButton: NSButton!
+	@IBOutlet var crashLogsLabel: NSTextField!
+	@IBOutlet var sendCrashLogsAutomaticallyButton: NSButton!
 
 	let releaseBuildsURL = Bundle.main.infoDictionary!["SUFeedURL"]! as! String
 	let testBuildsURL = Bundle.main.infoDictionary!["FeedURLForTestBuilds"]! as! String
@@ -34,6 +41,16 @@ final class AdvancedPreferencesViewController: NSViewController {
 
 	override func viewDidLoad() {
 		super.viewDidLoad()
+		if !AppDelegate.isSoftwareUpdateEnabled {
+			let softwareUpdateViews: [NSView] = [appUpdatesLabel, checkAutomaticallyButton, downloadLabel, releaseBuildsButton, testBuildsButton, buildTypeExplanationLabel, checkForUpdatesButton]
+			for updateView in softwareUpdateViews {
+				updateView.isHidden = true
+			}
+		}
+		if !CrashReporter.isAutomaticSendingEnabled {
+			crashLogsLabel.isHidden = true
+			sendCrashLogsAutomaticallyButton.isHidden = true
+		}
 		view.sizeToFittingSize()
 	}
 

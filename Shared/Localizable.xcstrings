@@ -196,6 +196,9 @@
     "API URL: https://fresh.rss.net/api/greader.php" : {
       "comment" : "FreshRSS API Helper"
     },
+    "Appearance" : {
+      "comment" : "Preferences"
+    },
     "Are you sure you want to delete %d feeds?" : {
       "comment" : "Delete feeds alert message"
     },
@@ -622,6 +625,9 @@
     "Extra Large" : {
       "comment" : "X-Large"
     },
+    "Fade Read Articles" : {
+      "comment" : "Timeline Layout: switch that fades read articles in the timeline"
+    },
     "Failed" : {
       "comment" : "Failed"
     },
@@ -639,11 +645,17 @@
         }
       }
     },
+    "Feed Icon Size" : {
+      "comment" : "Feed Icon Size"
+    },
     "Feed Icons" : {
       "comment" : "Feed Icons"
     },
     "Feed Inspector" : {
       "comment" : "Feed Inspector window title"
+    },
+    "Feed Name and Date Above Title" : {
+      "comment" : "Timeline Layout: switch that shows the feed name and date above the title in the timeline"
     },
     "Feeds" : {
       "comment" : "Feeds"
@@ -695,6 +707,9 @@
     },
     "from cache" : {
       "comment" : "Activity log — appended when a download was served from cache instead of the network"
+    },
+    "Full Title, No Preview" : {
+      "comment" : "Timeline Layout: Rows choice that shows the whole title, without the article preview, in the timeline"
     },
     "General" : {
       "comment" : "Preferences",
@@ -778,9 +793,6 @@
     "iCloud Storage Stats" : {
       "comment" : "iCloud Storage Stats window title"
     },
-    "Icon Size" : {
-      "comment" : "Icon Size"
-    },
     "Import Failed" : {
       "comment" : "Import Failed"
     },
@@ -830,6 +842,9 @@
     },
     "Light" : {
       "comment" : "Light"
+    },
+    "Lines" : {
+      "comment" : "Lines"
     },
     "Link:" : {
       "comment" : "Link"
@@ -1035,9 +1050,6 @@
     "Notifications need to be enabled in the Settings app." : {
       "comment" : "Notifications need to be enabled in the Settings app."
     },
-    "Number of Lines" : {
-      "comment" : "Number of Lines"
-    },
     "OK" : {
       "comment" : "OK button"
     },
@@ -1156,6 +1168,9 @@
     },
     "Return to Previous Scan Results" : {
       "comment" : "Return to previous scan results button"
+    },
+    "Rows" : {
+      "comment" : "Rows"
     },
     "Running" : {
       "comment" : "Running"
@@ -1290,6 +1305,9 @@
     "Shows current activity" : {
       "comment" : "Current Activity accessibility hint"
     },
+    "Shows the whole title, up to %d lines." : {
+      "comment" : "Timeline Layout: explains the Full Title, No Preview choice"
+    },
     "Sign in to your BazQux account and sync your feeds across your devices. Your username and password will be encrypted and stored in Keychain.\n\nDon’t have a BazQux account?" : {
       "comment" : "BazQux"
     },
@@ -1382,6 +1400,9 @@
         }
       }
     },
+    "System" : {
+      "comment" : "System"
+    },
     "System Default (%@)" : {
       "comment" : "Default browser item title format",
       "localizations" : {
@@ -1471,8 +1492,8 @@
     "This will delete:" : {
       "comment" : "Clean up confirmation prefix"
     },
-    "Thumbnail Size" : {
-      "comment" : "Thumbnail Size"
+    "Thumbnails" : {
+      "comment" : "Thumbnails"
     },
     "Timeline" : {
       "comment" : "Timeline"
@@ -1530,6 +1551,9 @@
     },
     "Title (Optional)" : {
       "comment" : "Feed title placeholder"
+    },
+    "Title and Preview" : {
+      "comment" : "Title and Preview"
     },
     "Titles left to check: %ld" : {
       "comment" : "Filter settings"

@@ -53,7 +53,6 @@ let appName = "NetNewsWire"
 
 	@IBOutlet var debugMenuItem: NSMenuItem!
 	@IBOutlet var useColumnLayoutMenuItem: NSMenuItem?
-	@IBOutlet var thumbnailsMenu: NSMenu?
 	@IBOutlet var showStatusBarMenuItem: NSMenuItem?
 	@IBOutlet var showStatusBarThemeMenuMenuItem: NSMenuItem?
 	@IBOutlet var checkForUpdatesMenuItem: NSMenuItem!
@@ -101,6 +100,9 @@ let appName = "NetNewsWire"
 	private var accountStatsWindowController: AccountStatsWindowController?
 	private let appMovementMonitor: RSAppMovementMonitor
 	private var softwareUpdater: SPUUpdater?
+
+	/// Sparkle updates are disabled until this build has its own appcast.
+	static let isSoftwareUpdateEnabled = false
 	private var crashReporter: PLCrashReporter?
 
 	private var themeImportPath: String?
@@ -122,6 +124,7 @@ let appName = "NetNewsWire"
 
 		NotificationCenter.default.addObserver(self, selector: #selector(unreadCountDidChange(_:)), name: .UnreadCountDidChange, object: AccountManager.shared)
 		NotificationCenter.default.addObserver(self, selector: #selector(handleUnreadCountDisplaySettingDidChange(_:)), name: .unreadCountDisplaySettingDidChange, object: nil)
+		NotificationCenter.default.addObserver(self, selector: #selector(handleUserInterfaceColorPaletteDidUpdate(_:)), name: .userInterfaceColorPaletteDidUpdate, object: nil)
 		NotificationCenter.default.addObserver(self, selector: #selector(inspectableObjectsDidChange(_:)), name: .InspectableObjectsDidChange, object: nil)
 		NotificationCenter.default.addObserver(self, selector: #selector(importDownloadedTheme(_:)), name: .didEndDownloadingTheme, object: nil)
 		NotificationCenter.default.addObserver(self, selector: #selector(themeImportError(_:)), name: .didFailToImportThemeWithError, object: nil)
@@ -145,6 +148,7 @@ let appName = "NetNewsWire"
 
 	func applicationWillFinishLaunching(_ notification: Notification) {
 		FaviconGenerator.templateImage = Assets.Images.faviconTemplate
+		applyUserInterfaceColorPalette()
 
 		installAppleEventHandlers()
 
@@ -161,25 +165,29 @@ let appName = "NetNewsWire"
 		// Load now, while the app bundle is readable. A translocated app that gets moved can’t read it later.
 		_ = MainWindowKeyboardHandler.shared
 
-		// Ensure the Sparkle feed URL is one of the two supported URLs.
-		// Default to the release builds URL from Info.plist.
-		if let infoDictionary = Bundle.main.infoDictionary,
-		   let releaseBuildsURL = infoDictionary["SUFeedURL"] as? String,
-		   let testBuildsURL = infoDictionary["FeedURLForTestBuilds"] as? String,
-		   let currentFeedURL = UserDefaults.standard.string(forKey: "SUFeedURL"),
-		   currentFeedURL != releaseBuildsURL && currentFeedURL != testBuildsURL {
-			UserDefaults.standard.set(releaseBuildsURL, forKey: "SUFeedURL")
-		}
+		if Self.isSoftwareUpdateEnabled {
+			// Ensure the Sparkle feed URL is one of the two supported URLs.
+			// Default to the release builds URL from Info.plist.
+			if let infoDictionary = Bundle.main.infoDictionary,
+			   let releaseBuildsURL = infoDictionary["SUFeedURL"] as? String,
+			   let testBuildsURL = infoDictionary["FeedURLForTestBuilds"] as? String,
+			   let currentFeedURL = UserDefaults.standard.string(forKey: "SUFeedURL"),
+			   currentFeedURL != releaseBuildsURL && currentFeedURL != testBuildsURL {
+				UserDefaults.standard.set(releaseBuildsURL, forKey: "SUFeedURL")
+			}
 
-		// Initialize Sparkle...
-		let hostBundle = Bundle.main
-		let updateDriver = SPUStandardUserDriver(hostBundle: hostBundle, delegate: self)
-		softwareUpdater = SPUUpdater(hostBundle: hostBundle, applicationBundle: hostBundle, userDriver: updateDriver, delegate: self)
+			// Initialize Sparkle...
+			let hostBundle = Bundle.main
+			let updateDriver = SPUStandardUserDriver(hostBundle: hostBundle, delegate: self)
+			softwareUpdater = SPUUpdater(hostBundle: hostBundle, applicationBundle: hostBundle, userDriver: updateDriver, delegate: self)
 
-		do {
-			try softwareUpdater?.start()
-		} catch {
-			Self.logger.error("Failed to start software updater with error: \(error.localizedDescription)")
+			do {
+				try softwareUpdater?.start()
+			} catch {
+				Self.logger.error("Failed to start software updater with error: \(error.localizedDescription)")
+			}
+		} else {
+			checkForUpdatesMenuItem.isHidden = true
 		}
 
 		AppDefaults.registerDefaults()
@@ -194,7 +202,6 @@ let appName = "NetNewsWire"
 		}
 
 		updateColumnLayoutMenuItem()
-		buildThumbnailsMenu()
 		updateStatusBarMenuItems()
 
 		if mainWindowController == nil {
@@ -239,7 +246,6 @@ let appName = "NetNewsWire"
 
 		ArticleThemesManager.shared.start()
 		NetworkMonitor.shared.start()
-		MemoryPressureMonitor.shared.start()
 
 #if !SKIP_APP_GROUP_ACCESS
 		ExtensionContainersFile.shared.start()
@@ -368,6 +374,10 @@ let appName = "NetNewsWire"
 		updateDockBadge()
 	}
 
+	@objc func handleUserInterfaceColorPaletteDidUpdate(_ notification: Notification) {
+		applyUserInterfaceColorPalette()
+	}
+
 	@objc func inspectableObjectsDidChange(_ note: Notification) {
 		MainActor.assumeIsolated {
 			guard let inspectorWindowController = inspectorWindowController, inspectorWindowController.isOpen else {
@@ -379,7 +389,6 @@ let appName = "NetNewsWire"
 
 	func userDefaultsDidChange() {
 		updateColumnLayoutMenuItem()
-		updateThumbnailsMenu()
 		updateStatusBarMenuItems()
 
 		if lastRefreshInterval != AppDefaults.refreshInterval {
@@ -463,6 +472,10 @@ let appName = "NetNewsWire"
 
 		let isDisplayingSheet = mainWindowController?.isDisplayingSheet ?? false
 
+		if item.action == #selector(checkForUpdates(_:)) {
+			return Self.isSoftwareUpdateEnabled
+		}
+
 		if item.action == #selector(refreshAll(_:)) {
 			return AccountManager.shared.canRefresh
 		}
@@ -487,12 +500,12 @@ let appName = "NetNewsWire"
 			return AppDefaults.showStatusBar
 		}
 
-		if item.action == #selector(setTimelineThumbnailsDisplay(_:)) {
-			return !AppDefaults.useColumnLayout
-		}
-
 		if item.action == #selector(toggleWebInspectorEnabled(_:)) {
 			(item as! NSMenuItem).state = AppDefaults.webInspectorEnabled ? .on : .off
+		}
+
+		if let isShown = SidebarViewController.smartFeedIsShown(forGoToAction: item.action) {
+			return isShown
 		}
 
 		return true
@@ -755,13 +768,6 @@ let appName = "NetNewsWire"
 		AppDefaults.useColumnLayout.toggle()
 	}
 
-	@IBAction func setTimelineThumbnailsDisplay(_ sender: Any?) {
-		guard let rawValue = (sender as? NSMenuItem)?.representedObject as? Int, let thumbnailsDisplay = TimelineThumbnailsDisplay(rawValue: rawValue) else {
-			return
-		}
-		AppDefaults.timelineThumbnailsDisplay = thumbnailsDisplay
-	}
-
 	@IBAction func toggleStatusBar(_ sender: Any?) {
 		AppDefaults.showStatusBar.toggle()
 	}
@@ -887,29 +893,6 @@ extension AppDelegate {
 
 	@MainActor func updateColumnLayoutMenuItem() {
 		useColumnLayoutMenuItem?.state = AppDefaults.useColumnLayout ? .on : .off
-	}
-
-	/// One item per TimelineThumbnailsDisplay case. The item’s representedObject is the raw value.
-	@MainActor func buildThumbnailsMenu() {
-		guard let thumbnailsMenu else {
-			return
-		}
-		thumbnailsMenu.removeAllItems()
-		for thumbnailsDisplay in TimelineThumbnailsDisplay.allCases {
-			let menuItem = NSMenuItem(title: thumbnailsDisplay.description, action: #selector(setTimelineThumbnailsDisplay(_:)), keyEquivalent: "")
-			menuItem.target = self
-			menuItem.representedObject = thumbnailsDisplay.rawValue
-			thumbnailsMenu.addItem(menuItem)
-		}
-		updateThumbnailsMenu()
-	}
-
-	@MainActor func updateThumbnailsMenu() {
-		let currentThumbnailsDisplay = AppDefaults.timelineThumbnailsDisplay
-		for menuItem in thumbnailsMenu?.items ?? [] {
-			let isCurrent = menuItem.representedObject as? Int == currentThumbnailsDisplay.rawValue
-			menuItem.state = isCurrent ? .on : .off
-		}
 	}
 
 	@MainActor func updateStatusBarMenuItems() {
@@ -1094,6 +1077,17 @@ extension AppDelegate: NSWindowRestoration {
 // Handle Notification Actions
 
 private extension AppDelegate {
+
+	func applyUserInterfaceColorPalette() {
+		switch AppDefaults.userInterfaceColorPalette {
+		case .automatic:
+			NSApp.appearance = nil
+		case .light:
+			NSApp.appearance = NSAppearance(named: .aqua)
+		case .dark:
+			NSApp.appearance = NSAppearance(named: .darkAqua)
+		}
+	}
 
 	func handleMarkAsRead(userInfo: [AnyHashable: Any]) {
 		handleStatusNotification(userInfo: userInfo, statusKey: .read)

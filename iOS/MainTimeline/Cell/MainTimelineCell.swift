@@ -11,9 +11,10 @@ import Images
 
 ///  Manual-layout timeline cell modeled on the Mac timeline
 ///  and the pre-7.0 iOS table view cell.
-final class MainTimelineCell: UICollectionViewCell {
+final class MainTimelineCell: UICollectionViewListCell {
 
 	static let reuseIdentifier = "MainTimelineCell"
+	private static let readArticleAlpha: CGFloat = 0.6
 
 	var isPreview = false
 
@@ -24,7 +25,8 @@ final class MainTimelineCell: UICollectionViewCell {
 	private lazy var iconView = IconView()
 	private lazy var indicatorView = IconView()
 	private let thumbnailView = UIImageView()
-	private let topSeparator = UIView()
+	/// Lines up the system separator with the text.
+	private lazy var separatorLeadingConstraint = separatorLayoutGuide.leadingAnchor.constraint(equalTo: contentView.leadingAnchor)
 
 	var cellData: MainTimelineCellData! {
 		didSet {
@@ -38,7 +40,7 @@ final class MainTimelineCell: UICollectionViewCell {
 			thumbnailView.image
 		}
 		set {
-			thumbnailView.image = newValue
+			setThumbnailImage(newValue)
 		}
 	}
 
@@ -55,7 +57,7 @@ final class MainTimelineCell: UICollectionViewCell {
 	override func prepareForReuse() {
 		super.prepareForReuse()
 		indicatorView.isHidden = true
-		thumbnailView.image = nil
+		setThumbnailImage(nil)
 	}
 
 	override func preferredLayoutAttributesFitting(_ layoutAttributes: UICollectionViewLayoutAttributes) -> UICollectionViewLayoutAttributes {
@@ -77,9 +79,12 @@ final class MainTimelineCell: UICollectionViewCell {
 		feedNameView.setFrameIfNotEqual(layout.feedNameRect)
 		dateView.setFrameIfNotEqual(layout.dateRect)
 		iconView.setFrameIfNotEqual(layout.iconImageRect)
-		thumbnailView.setFrameIfNotEqual(layout.thumbnailRect)
+		// Sized to the image, so the corner radius rounds the image itself. All of the rect until the image arrives.
+		thumbnailView.setFrameIfNotEqual(layout.thumbnailRect.aspectFitRect(for: thumbnailView.image?.size ?? .zero))
 		indicatorView.setFrameIfNotEqual(cellData.starred ? layout.starRect : layout.unreadIndicatorRect)
-		topSeparator.frame = CGRect(x: layout.separatorRect.minX, y: 0, width: layout.separatorRect.width, height: 1.0 / traitCollection.displayScale)
+		if separatorLeadingConstraint.constant != layout.separatorRect.minX {
+			separatorLeadingConstraint.constant = layout.separatorRect.minX
+		}
 	}
 
 	override func updateConfiguration(using state: UICellConfigurationState) {
@@ -123,18 +128,15 @@ final class MainTimelineCell: UICollectionViewCell {
 			backgroundConfig.backgroundColor = .clear
 		}
 
-		let isActive = state.isSwiped || state.isSelected
-
 		if isPreview {
 			backgroundConfig.backgroundColor = traitCollection.userInterfaceStyle == .dark ? .secondarySystemBackground : .white
 		}
 		backgroundConfiguration = backgroundConfig
 
-		topSeparator.alpha = (isActive || isPreview) ? 0.0 : 1.0
-
 		// Text goes white only on the accent background. On gray, labels keep their normal colors.
 		updateColors(active: showsAccentSelection)
 		updateIndicatorView(active: showsAccentSelection)
+		updateFading(isSelected: state.isSelected)
 	}
 }
 
@@ -161,11 +163,12 @@ private extension MainTimelineCell {
 
 	func commonInit() {
 		isAccessibilityElement = true
-		topSeparator.backgroundColor = .separator.withAlphaComponent(0.1)
+		separatorLeadingConstraint.isActive = true
 		thumbnailView.contentMode = .scaleAspectFit
 		thumbnailView.clipsToBounds = true
 		thumbnailView.layer.cornerRadius = MainTimelineDefaultCellLayout.thumbnailCornerRadius
-		for view in [titleView, summaryView, dateView, feedNameView, iconView, indicatorView, thumbnailView, topSeparator] {
+		thumbnailView.backgroundColor = Assets.Colors.thumbnailPlaceholder
+		for view in [titleView, summaryView, dateView, feedNameView, iconView, indicatorView, thumbnailView] {
 			contentView.addSubview(view)
 			view.isAccessibilityElement = false
 		}
@@ -181,6 +184,15 @@ private extension MainTimelineCell {
 			return MainTimelineAccessibilityCellLayout(width: width, insets: .zero, cellData: cellData)
 		}
 		return MainTimelineDefaultCellLayout(width: width, insets: .zero, cellData: cellData)
+	}
+
+	/// Lays out again, since the thumbnail view is sized to the image. The placeholder color shows until there’s an image.
+	func setThumbnailImage(_ image: UIImage?) {
+		if thumbnailView.image !== image {
+			thumbnailView.image = image
+			thumbnailView.backgroundColor = image == nil ? Assets.Colors.thumbnailPlaceholder : nil
+			setNeedsLayout()
+		}
 	}
 
 	func setFrame(for label: UILabel, rect: CGRect) {
@@ -224,18 +236,17 @@ private extension MainTimelineCell {
 		}
 
 		if cellData.showThumbnail {
-			thumbnailView.image = cellData.thumbnail
-			// Matches the Mac. The fill shows around the image, and in place of it until it arrives.
-			thumbnailView.backgroundColor = cellData.thumbnailsDisplay == .large ? .tertiarySystemFill : .systemFill
+			setThumbnailImage(cellData.thumbnail)
 			thumbnailView.isHidden = false
 		} else {
-			thumbnailView.image = nil
+			setThumbnailImage(nil)
 			thumbnailView.isHidden = true
 		}
 
 		let active = isActiveSelection(configurationState)
 		updateColors(active: active)
 		updateIndicatorView(active: active)
+		updateFading(isSelected: configurationState.isSelected)
 		updateAccessibilityLabel()
 		setNeedsLayout()
 	}
@@ -267,6 +278,18 @@ private extension MainTimelineCell {
 			indicatorView.isHidden = false
 		} else {
 			indicatorView.isHidden = true
+		}
+	}
+
+	/// Fades the content view, not the background, so the selection highlight stays full strength.
+	/// The selected row never fades, since selecting an article marks it read.
+	func updateFading(isSelected: Bool) {
+		var alpha: CGFloat = 1.0
+		if let cellData, cellData.fadesReadArticles, cellData.read, !isSelected {
+			alpha = Self.readArticleAlpha
+		}
+		if contentView.alpha != alpha {
+			contentView.alpha = alpha
 		}
 	}
 

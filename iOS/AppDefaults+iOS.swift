@@ -13,37 +13,12 @@ import Account
 import Articles
 import Images
 
-enum UserInterfaceColorPalette: Int, CustomStringConvertible, CaseIterable {
-	case automatic = 0
-	case light = 1
-	case dark = 2
-
-	var description: String {
-		switch self {
-		case .automatic:
-			NSLocalizedString("Automatic", comment: "Automatic")
-		case .light:
-			NSLocalizedString("Light", comment: "Light")
-		case .dark:
-			NSLocalizedString("Dark", comment: "Dark")
-		}
-	}
-}
-
-extension Notification.Name {
-	public static let userInterfaceColorPaletteDidUpdate = Notification.Name("UserInterfaceColorPaletteDidUpdateNotification")
-	public static let timelineIconSizeDidChange = Notification.Name("TimelineIconSizeDidChangeNotification")
-	public static let timelineNumberOfLinesDidChange = Notification.Name("TimelineNumberOfLinesDidChangeNotification")
-}
-
 extension AppDefaults.Key {
-	static let userInterfaceColorPalette = "userInterfaceColorPalette"
 	static let refreshClearsReadArticles = "refreshClearsReadArticles"
-	static let timelineNumberOfLines = "timelineNumberOfLines"
-	static let timelineIconDimension = "timelineIconSize"
 	static let articleFullscreenAvailable = "articleFullscreenAvailable"
 	static let articleFullscreenEnabled = "articleFullscreenEnabled"
 	static let confirmMarkAllAsRead = "confirmMarkAllAsRead"
+	static let showPreviewInTimelineContextMenu = "showPreviewInTimelineContextMenu"
 	static let lastRefresh = "lastRefresh"
 	static let useSystemBrowser = "useSystemBrowser"
 	static let hideReadFeeds = "hideReadFeeds"
@@ -68,19 +43,6 @@ extension AppDefaults.Key {
 extension AppDefaults {
 
 	fileprivate static let logger = Logger(subsystem: Logger.nnwSubsystem, category: "AppDefaults")
-
-	static var userInterfaceColorPalette: UserInterfaceColorPalette {
-		get {
-			if let result = UserInterfaceColorPalette(rawValue: UserDefaults.standard.integer(forKey: Key.userInterfaceColorPalette)) {
-				return result
-			}
-			return .automatic
-		}
-		set {
-			UserDefaults.standard.set(newValue.rawValue, forKey: Key.userInterfaceColorPalette)
-			NotificationCenter.default.post(name: .userInterfaceColorPaletteDidUpdate, object: nil)
-		}
-	}
 
 	static var useSystemBrowser: Bool {
 		get {
@@ -149,6 +111,15 @@ extension AppDefaults {
 		}
 	}
 
+	static var showPreviewInTimelineContextMenu: Bool {
+		get {
+			UserDefaults.standard.bool(forKey: Key.showPreviewInTimelineContextMenu)
+		}
+		set {
+			UserDefaults.standard.set(newValue, forKey: Key.showPreviewInTimelineContextMenu)
+		}
+	}
+
 	static var splitViewPreferredDisplayMode: Int {
 		get {
 			UserDefaults.standard.integer(forKey: Key.splitViewPreferredDisplayMode)
@@ -192,27 +163,6 @@ extension AppDefaults {
 		}
 		set {
 			AppDefaults.setDate(for: Key.lastRefresh, newValue)
-		}
-	}
-
-	static var timelineNumberOfLines: Int {
-		get {
-			UserDefaults.standard.integer(forKey: Key.timelineNumberOfLines)
-		}
-		set {
-			UserDefaults.standard.set(newValue, forKey: Key.timelineNumberOfLines)
-			NotificationCenter.default.post(name: .timelineNumberOfLinesDidChange, object: nil)
-		}
-	}
-
-	static var timelineIconSize: IconSize {
-		get {
-			let rawValue = UserDefaults.standard.integer(forKey: Key.timelineIconDimension)
-			return IconSize(rawValue: rawValue) ?? IconSize.medium
-		}
-		set {
-			UserDefaults.standard.set(newValue.rawValue, forKey: Key.timelineIconDimension)
-			NotificationCenter.default.post(name: .timelineIconSizeDidChange, object: nil)
 		}
 	}
 
@@ -341,13 +291,13 @@ extension AppDefaults {
 		migrateAppGroupDefaultsIfNeeded()
 
 		let platformDefaults: [String: Any] = [
-			Key.userInterfaceColorPalette: UserInterfaceColorPalette.automatic.rawValue,
 			Key.refreshClearsReadArticles: false,
 			Key.timelineNumberOfLines: 2,
 			Key.timelineIconDimension: IconSize.medium.rawValue,
 			Key.articleFullscreenAvailable: false,
 			Key.articleFullscreenEnabled: false,
 			Key.confirmMarkAllAsRead: true,
+			Key.showPreviewInTimelineContextMenu: false,
 			Key.splitViewPreferredDisplayMode: UISplitViewController.DisplayMode.oneBesideSecondary.rawValue
 		]
 

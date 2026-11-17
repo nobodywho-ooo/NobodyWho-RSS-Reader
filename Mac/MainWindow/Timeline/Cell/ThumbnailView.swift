@@ -9,20 +9,13 @@ import AppKit
 
 /// An article’s thumbnail in a timeline cell.
 ///
-/// The whole image shows, scaled to fit, on a fill that is also the placeholder until the image arrives.
+/// The whole image shows, scaled to fit. The cell sizes the view to the image, so the corner radius rounds the image itself.
+/// A placeholder color shows until the image arrives.
 final class ThumbnailView: NSView {
 
 	var image: NSImage? {
 		didSet {
 			if image !== oldValue {
-				needsDisplay = true
-			}
-		}
-	}
-
-	var fillColor = NSColor.systemFill {
-		didSet {
-			if fillColor != oldValue {
 				needsDisplay = true
 			}
 		}
@@ -57,12 +50,9 @@ final class ThumbnailView: NSView {
 	}
 
 	override func updateLayer() {
-		guard let layer else {
-			return
-		}
-		layer.contents = image?.cgImage(forProposedRect: nil, context: nil, hints: nil)
-		// Resolved here so the fill follows light and dark mode.
-		layer.backgroundColor = fillColor.cgColor
+		layer?.contents = image?.cgImage(forProposedRect: nil, context: nil, hints: nil)
+		// Resolved here so the placeholder follows light and dark mode.
+		layer?.backgroundColor = image == nil ? Assets.Colors.thumbnailPlaceholder.cgColor : nil
 	}
 }
 

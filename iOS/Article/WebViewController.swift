@@ -84,12 +84,14 @@ final class WebViewController: UIViewController {
 		}
 	}
 	private var restoreWindowScrollY: Int?
+	private var isChangingSize = false
 	private var isArticleContentJavascriptEnabled = AppDefaults.isArticleContentJavascriptEnabled
 
 	override func viewDidLoad() {
 		super.viewDidLoad()
 
 		NotificationCenter.default.addObserver(self, selector: #selector(handleFeedIconImageDidChange(_:)), name: .feedIconImageDidChange, object: nil)
+		NotificationCenter.default.addObserver(self, selector: #selector(handleGrayscaleIconsDidChange(_:)), name: .grayscaleIconsDidChange, object: nil)
 		NotificationCenter.default.addObserver(self, selector: #selector(handleAuthorAvatarImageDidChange(_:)), name: .authorAvatarImageDidChange, object: nil)
 		NotificationCenter.default.addObserver(self, selector: #selector(currentArticleThemeDidChangeNotification(_:)), name: .CurrentArticleThemeDidChangeNotification, object: nil)
 		NotificationCenter.default.addObserver(self, selector: #selector(handleSceneDidEnterBackground(_:)), name: UIScene.didEnterBackgroundNotification, object: nil)
@@ -106,6 +108,21 @@ final class WebViewController: UIViewController {
 		super.viewSafeAreaInsetsDidChange()
 		if isFullScreenAvailable && AppDefaults.logicalArticleFullscreenEnabled {
 			updateBottomSafeAreaForFullScreen()
+		}
+	}
+
+	override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+		super.viewWillTransition(to: size, with: coordinator)
+
+		// Ignore mid-transition offsets, then scroll back to the reader’s place.
+		isChangingSize = true
+		coordinator.animate(alongsideTransition: nil) { [weak self] _ in
+			guard let self else {
+				return
+			}
+			restoreScrollAnchor()
+			scrollPositionDidChange()
+			isChangingSize = false
 		}
 	}
 
@@ -134,6 +151,10 @@ final class WebViewController: UIViewController {
 
 	@objc func handleAuthorAvatarImageDidChange(_ notification: Notification) {
 		reloadArticleImageIfNeeded(notification)
+	}
+
+	@objc func handleGrayscaleIconsDidChange(_ notification: Notification) {
+		reloadArticleImage()
 	}
 
 	@objc func currentArticleThemeDidChangeNotification(_ note: Notification) {
@@ -560,13 +581,18 @@ extension WebViewController: WKScriptMessageHandler {
 extension WebViewController: UIScrollViewDelegate {
 
 	func scrollViewDidScroll(_ scrollView: UIScrollView) {
+		guard !isChangingSize else {
+			return
+		}
 		scrollPositionQueue.add(self, #selector(scrollPositionDidChange))
 	}
 
 	@objc func scrollPositionDidChange() {
 		let articleIDWhenAsked = article?.articleID
-		webView?.evaluateJavaScript("window.scrollY") { (scrollY, error) in
-			guard error == nil else { return }
+		webView?.evaluateJavaScript("recordScrollAnchor(); window.scrollY") { (scrollY, error) in
+			guard error == nil else {
+				return
+			}
 			// A late callback must not record the previous article’s offset.
 			// <https://github.com/Ranchero-Software/NetNewsWire/issues/5243>
 			guard articleIDWhenAsked == self.article?.articleID else {
@@ -574,7 +600,9 @@ extension WebViewController: UIScrollViewDelegate {
 			}
 			let javascriptScrollY = scrollY as? Int ?? 0
 			// I don't know why this value gets returned sometimes, but it is in error
-			guard javascriptScrollY != 33554432 else { return }
+			guard javascriptScrollY != 33554432 else {
+				return
+			}
 			self.windowScrollY = javascriptScrollY
 		}
 	}
@@ -700,6 +728,12 @@ private extension WebViewController {
 		webView.loadHTMLString(html, baseURL: URL(string: rendering.baseURL))
 	}
 
+	/// Scrolls back to the element that was at the top of the viewport before the article
+	/// reflowed, so rotating doesn't lose the reader's place.
+	func restoreScrollAnchor() {
+		webView?.evaluateJavaScript("restoreScrollAnchor();")
+	}
+
 	func finalScrollPosition(scrollingUp: Bool) -> CGFloat {
 		guard let webView = webView else { return 0 }
 
@@ -729,6 +763,13 @@ private extension WebViewController {
 	/// Each reload draws and encodes the icon again, so icons for other feeds and authors are skipped.
 	func reloadArticleImageIfNeeded(_ notification: Notification) {
 		guard let article, article.mightShowIcon(in: notification) else {
+			return
+		}
+		reloadArticleImage()
+	}
+
+	func reloadArticleImage() {
+		guard let article else {
 			return
 		}
 

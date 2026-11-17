@@ -7,12 +7,10 @@
 //
 
 import AppKit
+import Images
 
-enum FontSize: Int {
-	case small = 0
-	case medium = 1
-	case large = 2
-	case veryLarge = 3
+extension Notification.Name {
+	static let timelineShowSeparatorsDidChange = Notification.Name("TimelineShowSeparatorsDidChangeNotification")
 }
 
 /// What the status bar’s count text shows. Clicking the text cycles through them.
@@ -37,13 +35,12 @@ enum StatusBarCountMode: Int {
 extension AppDefaults.Key {
 	static let legacyWindowState = "windowState"
 	static let secureWindowState = "secureWindowState"
-	static let sidebarFontSize = "sidebarFontSize"
-	static let timelineFontSize = "timelineFontSize"
 	static let useColumnLayout = "useColumnLayout"
+	static let timelineShowSeparators = "timelineShowSeparators"
+	static let legacyTimelineShowSeparators = "CorreiaSeparators" // Formerly a hidden pref
 	static let showStatusBar = "showStatusBar"
 	static let showStatusBarThemeMenu = "showStatusBarThemeMenu"
 	static let statusBarCountMode = "statusBarCountMode"
-	static let detailFontSize = "detailFontSize"
 	static let openInBrowserInBackground = "openInBrowserInBackground"
 	static let subscribeToFeedsInDefaultBrowser = "subscribeToFeedsInDefaultBrowser"
 	static let articleTextSize = "articleTextSize"
@@ -58,7 +55,6 @@ extension AppDefaults.Key {
 
 	// Hidden prefs
 	static let showDebugMenu = "ShowDebugMenu"
-	static let timelineShowsSeparators = "CorreiaSeparators"
 	static let showTitleOnMainWindow = "KafasisTitleMode"
 	static let feedDoubleClickMarkAsRead = "GruberFeedDoubleClickMarkAsRead"
 	static let suppressSyncOnLaunch = "DevroeSuppressSyncOnLaunch"
@@ -67,8 +63,6 @@ extension AppDefaults.Key {
 }
 
 extension AppDefaults {
-	private static let smallestFontSizeRawValue = FontSize.small.rawValue
-	private static let largestFontSizeRawValue = FontSize.veryLarge.rawValue
 
 	/// Stores window state prior to switching to secure state restoration.
 	///
@@ -153,33 +147,6 @@ extension AppDefaults {
 		}
 		set {
 			UserDefaults.standard.set(newValue, forKey: Key.titleFilterThreshold)
-		}
-	}
-
-	static var sidebarFontSize: FontSize {
-		get {
-			fontSize(for: Key.sidebarFontSize)
-		}
-		set {
-			AppDefaults.setFontSize(for: Key.sidebarFontSize, newValue)
-		}
-	}
-
-	static var timelineFontSize: FontSize {
-		get {
-			fontSize(for: Key.timelineFontSize)
-		}
-		set {
-			AppDefaults.setFontSize(for: Key.timelineFontSize, newValue)
-		}
-	}
-
-	static var detailFontSize: FontSize {
-		get {
-			fontSize(for: Key.detailFontSize)
-		}
-		set {
-			AppDefaults.setFontSize(for: Key.detailFontSize, newValue)
 		}
 	}
 
@@ -313,8 +280,14 @@ extension AppDefaults {
 		}
 	}
 
-	static var timelineShowsSeparators: Bool {
-		UserDefaults.standard.bool(forKey: Key.timelineShowsSeparators)
+	static var timelineShowSeparators: Bool {
+		get {
+			UserDefaults.standard.bool(forKey: Key.timelineShowSeparators)
+		}
+		set {
+			UserDefaults.standard.set(newValue, forKey: Key.timelineShowSeparators)
+			NotificationCenter.default.post(name: .timelineShowSeparatorsDidChange, object: nil)
+		}
 	}
 
 	static var articleTextSize: ArticleTextSize {
@@ -347,6 +320,8 @@ extension AppDefaults {
 			UserDefaults.standard.set(RefreshInterval.every30Minutes.rawValue, forKey: Key.refreshInterval)
 		}
 
+		migrateLegacyTimelineShowSeparators()
+
 		#if DEBUG
  		let showDebugMenu = true
  		#else
@@ -354,56 +329,30 @@ extension AppDefaults {
  		#endif
 
 		let platformDefaults: [String: Any] = [
-			Key.sidebarFontSize: FontSize.medium.rawValue,
-			Key.timelineFontSize: FontSize.medium.rawValue,
-			Key.detailFontSize: FontSize.medium.rawValue,
 			Key.useColumnLayout: false,
 			Key.showStatusBar: Self.showStatusBarDefault,
 			Key.showStatusBarThemeMenu: true,
 			Key.statusBarCountMode: StatusBarCountMode.lastRefresh.rawValue,
 			"NSScrollViewShouldScrollUnderTitlebar": false,
 			Key.refreshInterval: RefreshInterval.every2Hours.rawValue,
-			Key.titleFilterHidesTopics: true,
-			Key.titleFilterHidesSponsoredContent: true,
+			Key.titleFilterHidesTopics: false,
+			Key.titleFilterHidesSponsoredContent: false,
 			Key.titleFilterThreshold: 0.5,
-			Key.showDebugMenu: showDebugMenu
+			Key.showDebugMenu: showDebugMenu,
+			Key.timelineShowSeparators: false,
+			Key.timelineIconDimension: IconSize.large.rawValue,
+			Key.timelineNumberOfLines: 3
 		]
 
 		let defaults = commonRegisteredDefaults.merging(platformDefaults) { _, platformValue in platformValue }
 		UserDefaults.standard.register(defaults: defaults)
 	}
 
-	static func actualFontSize(for fontSize: FontSize) -> CGFloat {
-		switch fontSize {
-		case .small:
-			NSFont.systemFontSize
-		case .medium:
-			actualFontSize(for: .small) + 1.0
-		case .large:
-			actualFontSize(for: .medium) + 4.0
-		case .veryLarge:
-			actualFontSize(for: .large) + 8.0
+	/// Carries a true value over from the old hidden-pref key, then removes the old key.
+	private static func migrateLegacyTimelineShowSeparators() {
+		if UserDefaults.standard.bool(forKey: Key.legacyTimelineShowSeparators) {
+			UserDefaults.standard.set(true, forKey: Key.timelineShowSeparators)
 		}
-	}
-}
-
-private extension AppDefaults {
-
-	static func fontSize(for key: String) -> FontSize {
-		// Punted till after 1.0.
-		.medium
-
-//		var rawFontSize = UserDefaults.standard.integer(forKey: key)
-//		if rawFontSize < smallestFontSizeRawValue {
-//			rawFontSize = smallestFontSizeRawValue
-//		}
-//		if rawFontSize > largestFontSizeRawValue {
-//			rawFontSize = largestFontSizeRawValue
-//		}
-//		return FontSize(rawValue: rawFontSize)!
-	}
-
-	static func setFontSize(for key: String, _ fontSize: FontSize) {
-		UserDefaults.standard.set(fontSize.rawValue, forKey: key)
+		UserDefaults.standard.removeObject(forKey: Key.legacyTimelineShowSeparators)
 	}
 }

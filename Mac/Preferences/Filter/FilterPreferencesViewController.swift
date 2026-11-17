@@ -23,8 +23,16 @@ final class FilterPreferencesViewController: NSViewController {
 	@IBOutlet var filterStatusTextField: NSTextField!
 	@IBOutlet var thresholdTextField: NSTextField!
 	@IBOutlet var thresholdStepper: NSStepper!
+	@IBOutlet var filterLabel: NSTextField!
+	@IBOutlet var addButton: NSButton!
+	@IBOutlet var tableBackgroundView: NSView!
+	@IBOutlet var thresholdLabel: NSTextField!
+	@IBOutlet var thresholdHintTextField: NSTextField!
+	@IBOutlet var filterBottomConstraint: NSLayoutConstraint!
+	@IBOutlet var modelBottomConstraint: NSLayoutConstraint!
 
 	private var didRegisterForNotifications = false
+	private var isShowingFilterViews = true
 
 	convenience init() {
 		self.init(nibName: "FilterPreferencesView", bundle: nil)
@@ -36,6 +44,9 @@ final class FilterPreferencesViewController: NSViewController {
 		thresholdStepper.maxValue = TitleFilter.maximumThreshold
 		thresholdStepper.increment = 0.1
 		modelStatusImageView.image = Assets.Images.filterModelStatus
+		modelBottomConstraint.isActive = false
+		modelBottomConstraint.priority = .required
+		updateFilterViewsVisibility()
 		view.sizeToFittingSize()
 	}
 
@@ -95,6 +106,7 @@ final class FilterPreferencesViewController: NSViewController {
 
 	@objc func handleTitleFilterStatusDidChange(_ notification: Notification) {
 		updateModelUI()
+		updateFilterViewsVisibility()
 		updateFilterStatus()
 	}
 }
@@ -147,7 +159,64 @@ private extension FilterPreferencesViewController {
 		tableView.reloadData()
 		updateRemoveButtonState()
 		updateModelUI()
+		updateFilterViewsVisibility()
 		updateFilterStatus()
+	}
+
+	/// Shows the filter settings only once the model is downloaded,
+	/// and resizes the view (and window) to fit.
+	func updateFilterViewsVisibility() {
+		let shouldShow = TitleFilter.shared.modelState == .downloaded
+		guard shouldShow != isShowingFilterViews else {
+			return
+		}
+		isShowingFilterViews = shouldShow
+
+		let filterViews: [NSView] = [
+			filterLabel,
+			sponsoredContentCheckbox,
+			topicsCheckbox,
+			topicTextField,
+			addButton,
+			tableBackgroundView,
+			removeButton,
+			filterStatusTextField,
+			thresholdLabel,
+			thresholdTextField,
+			thresholdStepper,
+			thresholdHintTextField
+		]
+		for filterView in filterViews {
+			filterView.isHidden = !shouldShow
+		}
+		if shouldShow {
+			modelBottomConstraint.isActive = false
+			filterBottomConstraint.isActive = true
+		} else {
+			filterBottomConstraint.isActive = false
+			modelBottomConstraint.isActive = true
+		}
+
+		resizeToFit()
+	}
+
+	func resizeToFit() {
+		view.layoutSubtreeIfNeeded()
+		let newHeight = view.fittingSize.height
+		let deltaHeight = newHeight - view.frame.height
+		guard deltaHeight != 0 else {
+			return
+		}
+
+		view.setFrameSize(NSSize(width: view.frame.width, height: newHeight))
+
+		guard let window = view.window, view.superview == window.contentView else {
+			return
+		}
+		var windowFrame = window.frame
+		windowFrame.size.height += deltaHeight
+		windowFrame.origin.y -= deltaHeight
+		window.setFrame(windowFrame, display: true, animate: true)
 	}
 
 	func updateRemoveButtonState() {

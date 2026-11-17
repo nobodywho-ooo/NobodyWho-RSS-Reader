@@ -15,6 +15,18 @@ function wrapFrames() {
 	});
 }
 
+// Optimole lazy-loading leaves src as about:blank, with the real URL in data-opt-src.
+// <https://github.com/Ranchero-Software/NetNewsWire/issues/5545>
+function loadLazyIframes() {
+	document.querySelectorAll("iframe[data-opt-src]").forEach(element => {
+		const src = element.getAttribute("src");
+		const lazySrc = element.getAttribute("data-opt-src");
+		if ((!src || src === "about:blank") && /^https?:\/\//i.test(lazySrc)) {
+			element.src = lazySrc;
+		}
+	});
+}
+
 // The stylesheet clamps iframes to the article width with max-width: 100%,
 // which leaves an attribute-sized iframe with its full height — distorted,
 // and a huge blank box when the embed fails to load. Let the height follow
@@ -180,6 +192,67 @@ function stopMediaPlayback() {
 	});
 }
 
+// The element at the top of the viewport, how far through it the viewport top is,
+// and any remaining distance. A scroll offset alone means nothing once the article
+// reflows at a different width.
+let scrollAnchorElement = null;
+let scrollAnchorFraction = 0;
+let scrollAnchorOffset = 0;
+
+const scrollAnchorSampleSpacing = 16;
+
+// False for a container hit in the gap between blocks: it has element children
+// and only whitespace text of its own.
+function isScrollAnchorCandidate(element) {
+	if (element.children.length === 0) {
+		return true;
+	}
+	for (const node of element.childNodes) {
+		if (node.nodeType === Node.TEXT_NODE && node.textContent.trim() !== "") {
+			return true;
+		}
+	}
+	return false;
+}
+
+function findScrollAnchorElement() {
+	const x = window.innerWidth / 2;
+	const maximumSampleDepth = window.innerHeight / 4;
+	let firstHit = null;
+	for (let y = 1; y <= maximumSampleDepth; y += scrollAnchorSampleSpacing) {
+		const element = document.elementFromPoint(x, y);
+		if (!element) {
+			continue;
+		}
+		if (isScrollAnchorCandidate(element)) {
+			return element;
+		}
+		if (!firstHit) {
+			firstHit = element;
+		}
+	}
+	return firstHit;
+}
+
+function recordScrollAnchor() {
+	scrollAnchorElement = findScrollAnchorElement();
+	if (!scrollAnchorElement) {
+		return;
+	}
+	const rect = scrollAnchorElement.getBoundingClientRect();
+	scrollAnchorFraction = rect.height > 0 ? Math.min(Math.max(-rect.top / rect.height, 0), 1) : 0;
+	scrollAnchorOffset = -(rect.top + scrollAnchorFraction * rect.height);
+}
+
+// Scrolls back to the same place in the recorded element after a reflow.
+function restoreScrollAnchor() {
+	if (!scrollAnchorElement || !scrollAnchorElement.isConnected) {
+		return;
+	}
+	const rect = scrollAnchorElement.getBoundingClientRect();
+	window.scrollTo(0, window.scrollY + rect.top + scrollAnchorFraction * rect.height + scrollAnchorOffset);
+}
+
 function error() {
 	document.body.innerHTML = "error";
 }
@@ -231,6 +304,7 @@ function removeInstapaperIgnoreElements() {
 function processPage() {
 	// stripStyles must run first — wrapFrames sets aspect-ratio on fixed-size iframes, which stripStyles would remove.
 	stripStyles();
+	loadLazyIframes();
 	wrapFrames();
 	wrapTables();
 	inlineVideos();

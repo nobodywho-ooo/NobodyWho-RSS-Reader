@@ -1,5 +1,46 @@
 # Mac Release Notes
 
+### 7.3b7 7234 9 Nov 2026 - branch: main tag: mac-7.3b7
+
+Make image cache eviction less aggressive, which should fix a loop where images get evicted, re-cached, evicted, re-cached, etc. (See this Discourse forum post <https://discourse.netnewswire.com/t/favicons-disappear-in-7-3b3/481>.)
+
+### 7.3b6 7233 9 Nov 2026 - branch: main tag: mac-7.3b6
+
+Added a Grayscale icons setting to Settings > Appearance — for feed icons and author avatars (article thumbnails stay in color)
+Made Feed Name and Date Above Title the default in the timeline
+Put the date above the thumbnail when small thumbnails and Feed Name and Date Above Title are both on
+Made timeline rows always show the author or feed name, instead of leaving that spot empty
+Limited articles with no title to four lines when rows show the full title with no preview
+Added [[primary_media]] and [[enclosures]] tags for themes — primary_media is the article’s main image, video, or audio from the feed, when the article’s HTML doesn’t already include it
+Allowed themes to include a template7.3.html file, which is used in 7.3 and later instead of template.html
+Updated the built-in themes to use [[primary_media]] and [[enclosures]]
+Skipped enclosure images that are the same as the feed image (as with Letters from an American), so they don’t become redundant thumbnails or primary images
+Skipped primary images for microblog-style (Mastodon, etc.) posts — their images appear with the enclosures at the bottom
+Used media:thumbnail as a fallback when an article has no other images (as with Wired)
+Picked the widest image when Guardian image enclosures differ only by width
+Fixed duplicate images in Engadget articles
+Fixed embedded YouTube videos (and other iframes) not loading on sites that use Optimole lazy loading
+Fixed blog.rust-lang.org articles — JavaScript is turned off for them, and their noscript content is shown
+Used an item’s only Gravatar as its author’s avatar, even when the author name is a username
+
+### 7.3b5 7232 7 Nov 2026 - branch: main tag: mac-7.3b5
+
+Added an Appearance settings pane — appearance (system, light, or dark), sidebar text size, sidebar icons, which smart feeds to show (Today, All Unread, Starred), and the article theme and text size (moved from General)
+Added a Timeline settings pane — text size, feed icons (automatic, always, or never), feed icon size, thumbnails, rows (full title with no preview, or title and preview in 1 to 6 lines), separators, fading read articles, and showing the feed name and date above the title
+Moved the Thumbnails setting from the View menu to Settings > Timeline
+Made rows fit their content (variable row heights) in timeline
+Made separators a regular setting (it was a hidden preference) — your existing choice carries over
+Gave the status bar a crisper top edge, a deeper gradient, and an etched, higher-contrast divider grip
+Made the main window’s split view dividers a little darker in light mode
+
+### 7.3b4 7229 6 Nov 2026 - branch: main tag: mac-7.3b4
+
+Made small thumbnails fill the space (aspect fill) — images are cropped from the sides and bottom, never the top, so faces and other important parts are more likely to stay in view
+Gave large thumbnails rounded corners, to match small thumbnails and feed icons
+Removed the background color behind thumbnails, and added a faint placeholder color that shows until a thumbnail loads
+Fixed footnote popover positioning near the edge of the article view and after resizing the window on Duo
+Fixed bug where the last article in the timeline had a separator below it (when separators are turned on via the hidden preference)
+
 ### 7.3b3 7227 3 Nov 2026 - branch: main tag: mac-7.3b3
 
 Added support for enclosures and Media RSS

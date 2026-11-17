@@ -20,6 +20,13 @@
                 <outlet property="topicTextField" destination="FPv-TF-001" id="FPv-o08"/>
                 <outlet property="topicsCheckbox" destination="FPv-CB-001" id="FPv-o02"/>
                 <outlet property="view" destination="FPv-Rt-001" id="FPv-o09"/>
+                <outlet property="filterLabel" destination="FPv-FL-001" id="FPv-o19"/>
+                <outlet property="addButton" destination="FPv-AB-001" id="FPv-o20"/>
+                <outlet property="tableBackgroundView" destination="FPv-TB-001" id="FPv-o21"/>
+                <outlet property="thresholdLabel" destination="FPv-HL-001" id="FPv-o22"/>
+                <outlet property="thresholdHintTextField" destination="FPv-HN-001" id="FPv-o23"/>
+                <outlet property="filterBottomConstraint" destination="FPv-k37" id="FPv-o17"/>
+                <outlet property="modelBottomConstraint" destination="FPv-k90" id="FPv-o18"/>
             </connections>
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
@@ -91,7 +98,7 @@
                 </textField>
                 <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="FPv-SC-001">
                     <rect key="frame" x="118" y="292" width="260" height="16"/>
-                    <buttonCell key="cell" type="check" title="Hide sponsored or promotional content" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="FPv-SC-c01">
+                    <buttonCell key="cell" type="check" title="Hide sponsored or promotional content" bezelStyle="regularSquare" imagePosition="left" inset="2" id="FPv-SC-c01">
                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                         <font key="font" metaFont="system"/>
                     </buttonCell>
@@ -101,7 +108,7 @@
                 </button>
                 <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="FPv-CB-001">
                     <rect key="frame" x="118" y="270" width="294" height="16"/>
-                    <buttonCell key="cell" type="check" title="Hide articles whose titles match these topics" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="FPv-CB-c01">
+                    <buttonCell key="cell" type="check" title="Hide articles whose titles match these topics" bezelStyle="regularSquare" imagePosition="left" inset="2" id="FPv-CB-c01">
                         <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                         <font key="font" metaFont="system"/>
                     </buttonCell>
@@ -264,8 +271,6 @@
             <constraints>
                 <constraint firstItem="FPv-MD-001" firstAttribute="leading" secondItem="FPv-Rt-001" secondAttribute="leading" constant="118" id="FPv-k01"/>
                 <constraint firstItem="FPv-MD-001" firstAttribute="leading" secondItem="FPv-ML-001" secondAttribute="trailing" constant="8" symbolic="YES" id="FPv-k02"/>
-                <constraint firstItem="FPv-MS-001" firstAttribute="leading" secondItem="FPv-MD-001" secondAttribute="trailing" constant="5" id="FPv-k83"/>
-                <constraint firstItem="FPv-MD-001" firstAttribute="centerY" secondItem="FPv-MS-001" secondAttribute="centerY" id="FPv-k84"/>
                 <constraint firstItem="FPv-ML-001" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="FPv-Rt-001" secondAttribute="leading" constant="20" id="FPv-k03"/>
                 <constraint firstItem="FPv-ML-001" firstAttribute="firstBaseline" secondItem="FPv-MS-001" secondAttribute="firstBaseline" id="FPv-k04"/>
                 <constraint firstItem="FPv-MS-001" firstAttribute="top" secondItem="FPv-IN-001" secondAttribute="bottom" constant="28" id="FPv-k05"/>
@@ -311,6 +316,9 @@
                 <constraint firstItem="FPv-HN-001" firstAttribute="leading" secondItem="FPv-SP-001" secondAttribute="trailing" constant="8" symbolic="YES" id="FPv-k80"/>
                 <constraint firstItem="FPv-HN-001" firstAttribute="firstBaseline" secondItem="FPv-HV-001" secondAttribute="firstBaseline" id="FPv-k81"/>
                 <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="FPv-HN-001" secondAttribute="trailing" constant="20" symbolic="YES" id="FPv-k82"/>
+                <constraint firstItem="FPv-MS-001" firstAttribute="leading" secondItem="FPv-MD-001" secondAttribute="trailing" constant="5" id="FPv-k83"/>
+                <constraint firstItem="FPv-MD-001" firstAttribute="centerY" secondItem="FPv-MS-001" secondAttribute="centerY" id="FPv-k84"/>
+                <constraint firstAttribute="bottom" secondItem="FPv-MB-001" secondAttribute="bottom" priority="250" constant="20" symbolic="YES" id="FPv-k90"/>
             </constraints>
             <point key="canvasLocation" x="140" y="154"/>
         </view>

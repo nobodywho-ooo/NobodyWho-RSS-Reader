@@ -22,6 +22,9 @@ final class MainTimelineViewController: UIViewController, UndoableCommandRunner 
 	private var numberOfTextLines = 0
 	private var iconSize = IconSize.medium
 	private var thumbnailsDisplay = TimelineThumbnailsDisplay.none
+	private var fadesReadArticles = false
+	private var feedNameAndDateAboveTitle = false
+	private var showsFullTitles = false
 	private var articleIDsToReload = Set<String>()
 	private lazy var feedTapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(showFeedInspector(_:)))
 	private lazy var filterButton = UIBarButtonItem(image: Assets.Images.filter, style: .plain, target: self, action: #selector(toggleFilter(_:)))
@@ -189,6 +192,9 @@ final class MainTimelineViewController: UIViewController, UndoableCommandRunner 
 		numberOfTextLines = AppDefaults.timelineNumberOfLines
 		iconSize = AppDefaults.timelineIconSize
 		thumbnailsDisplay = AppDefaults.timelineThumbnailsDisplay
+		fadesReadArticles = AppDefaults.timelineFadeReadArticles
+		feedNameAndDateAboveTitle = AppDefaults.timelineFeedNameAndDateAboveTitle
+		showsFullTitles = AppDefaults.timelineShowFullTitles
 
 		assert(collectionView?.refreshControl != nil)
 		collectionView?.refreshControl = UIRefreshControl()
@@ -593,11 +599,15 @@ extension MainTimelineViewController: UICollectionViewDelegate {
 	func collectionView(_ collectionView: UICollectionView, contextMenuConfigurationForItemsAt indexPaths: [IndexPath], point: CGPoint) -> UIContextMenuConfiguration? {
 		guard let firstIndex = indexPaths.first, let dataSource, let article = dataSource.itemIdentifier(for: firstIndex) else { return nil }
 
-		let previewProvider: UIContextMenuContentPreviewProvider = { [weak self] in
-			guard let coordinator = self?.coordinator else {
-				return nil
+		// The preview is off by default, since it can cover part of the menu.
+		var previewProvider: UIContextMenuContentPreviewProvider?
+		if AppDefaults.showPreviewInTimelineContextMenu {
+			previewProvider = { [weak self] in
+				guard let coordinator = self?.coordinator else {
+					return nil
+				}
+				return ArticlePreviewViewController(article: article, coordinator: coordinator)
 			}
-			return ArticlePreviewViewController(article: article, coordinator: coordinator)
 		}
 
 		return UIContextMenuConfiguration(identifier: firstIndex.row as NSCopying, previewProvider: previewProvider, actionProvider: { [weak self] _ in
@@ -753,10 +763,14 @@ private extension MainTimelineViewController {
 		NotificationCenter.default.addObserver(self, selector: #selector(unreadCountDidChange(_:)), name: .UnreadCountDidChange, object: nil)
 		NotificationCenter.default.addObserver(self, selector: #selector(statusesDidChange(_:)), name: .StatusesDidChange, object: nil)
 		NotificationCenter.default.addObserver(self, selector: #selector(handleFeedIconImageDidChange(_:)), name: .feedIconImageDidChange, object: nil)
+		NotificationCenter.default.addObserver(self, selector: #selector(handleGrayscaleIconsDidChange(_:)), name: .grayscaleIconsDidChange, object: nil)
 		NotificationCenter.default.addObserver(self, selector: #selector(handleAuthorAvatarImageDidChange(_:)), name: .authorAvatarImageDidChange, object: nil)
 		NotificationCenter.default.addObserver(self, selector: #selector(timelineIconSizeDidChange(_:)), name: .timelineIconSizeDidChange, object: nil)
 		NotificationCenter.default.addObserver(self, selector: #selector(timelineNumberOfLinesDidChange(_:)), name: .timelineNumberOfLinesDidChange, object: nil)
 		NotificationCenter.default.addObserver(self, selector: #selector(handleTimelineThumbnailsDisplayDidChange(_:)), name: .timelineThumbnailsDisplayDidChange, object: nil)
+		NotificationCenter.default.addObserver(self, selector: #selector(handleTimelineFadeReadArticlesDidChange(_:)), name: .timelineFadeReadArticlesDidChange, object: nil)
+		NotificationCenter.default.addObserver(self, selector: #selector(handleTimelineFeedNameAndDateAboveTitleDidChange(_:)), name: .timelineFeedNameAndDateAboveTitleDidChange, object: nil)
+		NotificationCenter.default.addObserver(self, selector: #selector(handleTimelineShowFullTitlesDidChange(_:)), name: .timelineShowFullTitlesDidChange, object: nil)
 		NotificationCenter.default.addObserver(self, selector: #selector(handleThumbnailDidBecomeAvailable(_:)), name: .thumbnailDidBecomeAvailable, object: nil)
 		NotificationCenter.default.addObserver(self, selector: #selector(handleArticleThumbnailDownloadDidFail(_:)), name: .articleThumbnailDownloadDidFail, object: nil)
 		NotificationCenter.default.addObserver(self, selector: #selector(handleNetworkStatusDidChange(_:)), name: .networkStatusDidChange, object: nil)
@@ -793,8 +807,16 @@ private extension MainTimelineViewController {
 
 	private func configureCollectionView(_ dataSource: UICollectionViewDiffableDataSource<Int, Article>) {
 		var config = UICollectionLayoutListConfiguration(appearance: .plain)
-		config.showsSeparators = false
 		config.headerMode = .none
+		// System separators between rows, none above the first row or below the last. Each cell lines its separator up with its text.
+		config.itemSeparatorHandler = { [weak self] indexPath, sectionSeparatorConfiguration in
+			var separatorConfiguration = sectionSeparatorConfiguration
+			separatorConfiguration.topSeparatorVisibility = .hidden
+			if let collectionView = self?.collectionView, indexPath.item == collectionView.numberOfItems(inSection: indexPath.section) - 1 {
+				separatorConfiguration.bottomSeparatorVisibility = .hidden
+			}
+			return separatorConfiguration
+		}
 		config.trailingSwipeActionsConfigurationProvider = { [weak self] indexPath in
 			guard let self else {
 				return nil
@@ -983,7 +1005,7 @@ private extension MainTimelineViewController {
 			showThumbnail = true
 			thumbnail = ThumbnailDownloader.shared.thumbnail(url: thumbnailURL, mode: thumbnailMode, articleTitle: article.title)
 		}
-		let cellData = MainTimelineCellData(article: article, showFeedName: showFeedNames, feedName: article.feed?.nameForDisplay, byline: article.byline(), iconImage: iconImage, showIcon: showIcon, numberOfLines: numberOfTextLines, iconSize: iconSize, thumbnail: thumbnail, showThumbnail: showThumbnail, thumbnailsDisplay: thumbnailsDisplay)
+		let cellData = MainTimelineCellData(article: article, showFeedName: showFeedNames, feedName: article.feed?.nameForDisplay, byline: article.byline(), iconImage: iconImage, showIcon: showIcon, numberOfLines: numberOfTextLines, iconSize: iconSize, thumbnail: thumbnail, showThumbnail: showThumbnail, thumbnailsDisplay: thumbnailsDisplay, fadesReadArticles: fadesReadArticles, feedNameAndDateAboveTitle: feedNameAndDateAboveTitle, showsFullTitles: showsFullTitles)
 		return cellData
 	}
 
@@ -1149,6 +1171,14 @@ private extension MainTimelineViewController {
 		queueReloadIfVisibleArticleMightShowIcon(in: notification)
 	}
 
+	@objc func handleGrayscaleIconsDidChange(_ notification: Notification) {
+		Self.logger.debug("MainTimelineViewController: handleGrayscaleIconsDidChange")
+		guard showIcons else {
+			return
+		}
+		reloadVisibleCells()
+	}
+
 	@objc func timelineIconSizeDidChange(_ note: Notification) {
 		Self.logger.debug("MainTimelineViewController: timelineIconSizeDidChange")
 		if iconSize != AppDefaults.timelineIconSize {
@@ -1173,6 +1203,30 @@ private extension MainTimelineViewController {
 		if thumbnailMode == nil {
 			ArticleThumbnailFinder.shared.emptyHTMLThumbnailCache()
 		}
+		reloadAllCells()
+	}
+
+	@objc func handleTimelineFadeReadArticlesDidChange(_ notification: Notification) {
+		guard fadesReadArticles != AppDefaults.timelineFadeReadArticles else {
+			return
+		}
+		fadesReadArticles = AppDefaults.timelineFadeReadArticles
+		reloadVisibleCells()
+	}
+
+	@objc func handleTimelineFeedNameAndDateAboveTitleDidChange(_ notification: Notification) {
+		guard feedNameAndDateAboveTitle != AppDefaults.timelineFeedNameAndDateAboveTitle else {
+			return
+		}
+		feedNameAndDateAboveTitle = AppDefaults.timelineFeedNameAndDateAboveTitle
+		reloadAllCells()
+	}
+
+	@objc func handleTimelineShowFullTitlesDidChange(_ notification: Notification) {
+		guard showsFullTitles != AppDefaults.timelineShowFullTitles else {
+			return
+		}
+		showsFullTitles = AppDefaults.timelineShowFullTitles
 		reloadAllCells()
 	}
 

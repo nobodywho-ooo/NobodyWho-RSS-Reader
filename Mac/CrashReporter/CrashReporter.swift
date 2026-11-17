@@ -23,6 +23,9 @@ import CrashReporter
 		static let sendCrashLogsAutomaticallyKey = "SendCrashLogsAutomatically"
 	}
 
+	/// Automatic crash log sending is disabled for this build.
+	static let isAutomaticSendingEnabled = false
+
 	private static var crashReportWindowController: CrashReportWindowController?
 
 	/// Look in ~/Library/Logs/DiagnosticReports/ for a new crash log for this app.
@@ -72,6 +75,9 @@ import CrashReporter
 private extension CrashReporter {
 
 	static func shouldSendCrashLogsAutomatically() -> Bool {
+		guard isAutomaticSendingEnabled else {
+			return false
+		}
 		return UserDefaults.standard.bool(forKey: DefaultsKey.sendCrashLogsAutomaticallyKey)
 	}
 }

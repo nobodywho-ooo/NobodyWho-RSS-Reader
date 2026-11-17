@@ -191,8 +191,10 @@ final class MainFeedCollectionViewController: UICollectionViewController, Undoab
 	func registerForNotifications() {
 		NotificationCenter.default.addObserver(self, selector: #selector(unreadCountDidChange(_:)), name: .UnreadCountDidChange, object: nil)
 		NotificationCenter.default.addObserver(self, selector: #selector(handleFeedIconImageDidChange(_:)), name: .feedIconImageDidChange, object: nil)
+		NotificationCenter.default.addObserver(self, selector: #selector(handleGrayscaleIconsDidChange(_:)), name: .grayscaleIconsDidChange, object: nil)
 		NotificationCenter.default.addObserver(self, selector: #selector(feedSettingDidChange(_:)), name: .feedSettingDidChange, object: nil)
 		NotificationCenter.default.addObserver(self, selector: #selector(handleUnreadCountDisplaySettingDidChange(_:)), name: .unreadCountDisplaySettingDidChange, object: nil)
+		NotificationCenter.default.addObserver(self, selector: #selector(handleSidebarShowsIconsDidChange(_:)), name: .sidebarShowsIconsDidChange, object: nil)
 
 		registerForTraitChanges([UITraitPreferredContentSizeCategory.self], target: self, action: #selector(preferredContentSizeCategoryDidChange))
 	}
@@ -209,7 +211,10 @@ final class MainFeedCollectionViewController: UICollectionViewController, Undoab
 			guard let self else {
 				return nil
 			}
-			if indexPath.section == 0 { return UISwipeActionsConfiguration(actions: []) }
+			// The smart feeds section has an empty identifier. It’s absent when every smart feed is hidden.
+			if let sectionID = self.dataSource.sectionIdentifier(for: indexPath.section), sectionID.isEmpty {
+				return UISwipeActionsConfiguration(actions: [])
+			}
 			var actions = [UIContextualAction]()
 
 			// Set up the delete action
@@ -816,6 +821,7 @@ final class MainFeedCollectionViewController: UICollectionViewController, Undoab
 			cell.feedTitle.text = sidebarItem.nameForDisplay
 			cell.unreadCount = sidebarItem.unreadCount
 			cell.indentationLevel = indentationLevel
+			cell.showsIcon = AppDefaults.sidebarShowsIcons
 			configureIcon(cell, sidebarItem: sidebarItem)
 		}
 	}
@@ -827,6 +833,7 @@ final class MainFeedCollectionViewController: UICollectionViewController, Undoab
 		if let folder = node.representedObject as? Folder {
 			cell.folderTitle.text = folder.nameForDisplay
 			cell.unreadCount = folder.unreadCount
+			cell.showsIcon = AppDefaults.sidebarShowsIcons
 			configureIcon(cell, sidebarItem: folder)
 		}
 
@@ -837,9 +844,6 @@ final class MainFeedCollectionViewController: UICollectionViewController, Undoab
 
 	private func findHeaderViewForAccount(_ account: Account) -> MainFeedCollectionHeaderReusableView? {
 		guard let sectionIndex = dataSource.snapshot().sectionIdentifiers.firstIndex(of: account.accountID) else {
-			return nil
-		}
-		guard sectionIndex > 0 else { // Skip smart feeds.
 			return nil
 		}
 
@@ -914,6 +918,16 @@ final class MainFeedCollectionViewController: UICollectionViewController, Undoab
 			}
 		}
 
+		// Only realized cells are reconfigured. Others pick up the setting when dequeued.
+		reconfigureItems(dataSource.snapshot().itemIdentifiers)
+	}
+
+	@objc func handleSidebarShowsIconsDidChange(_ notification: Notification) {
+		// Only realized cells are reconfigured. Others pick up the setting when dequeued.
+		reconfigureItems(dataSource.snapshot().itemIdentifiers)
+	}
+
+	@objc func handleGrayscaleIconsDidChange(_ notification: Notification) {
 		// Only realized cells are reconfigured. Others pick up the setting when dequeued.
 		reconfigureItems(dataSource.snapshot().itemIdentifiers)
 	}
