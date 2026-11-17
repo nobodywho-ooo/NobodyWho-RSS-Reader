@@ -1,3 +1,4 @@
+![Demo](./demo.gif)
 
 # NobodyWho RSS Reader
 
